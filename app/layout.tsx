@@ -8,9 +8,9 @@ export const metadata: Metadata = {
   },
   description: "Pogessi - USA's exclusive e-commerce platform.",
   icons: {
-    icon: '/img/favicon.ico',
-    shortcut: '/img/favicon.ico',
-    apple: '/img/favicon.ico'
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico'
   }
 }
 
