@@ -26,6 +26,13 @@ export default function Turn({
   }
 
   const formatter = formatAppliedFilters || defaultFormatAppliedFilters
+  const sortedTurns = [...turn_history].sort((a, b) => a.turn_index - b.turn_index)
+  const formatCreatedAt = (value?: string) => {
+    if (!value) return 'Unknown time'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return 'Unknown time'
+    return date.toLocaleString()
+  }
 
   return (
     <Paper
@@ -42,7 +49,7 @@ export default function Turn({
         Timeline
       </Typography>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-        {turn_history.map((turn) => {
+        {sortedTurns.map((turn) => {
           const isActive = turn.turn_index === currentTurn
           const isDisabled = disabled
 
@@ -68,7 +75,10 @@ export default function Turn({
                 Turn {turn.turn_index}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                {turn.match_count} items
+                {turn.match_count} {turn.match_count === 1 ? 'result' : 'results'}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                {formatCreatedAt(turn.created_at)}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                 Selected:{' '}

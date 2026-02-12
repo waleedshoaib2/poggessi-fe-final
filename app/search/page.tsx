@@ -1,6 +1,16 @@
 'use client'
 import React, { useState, useRef, useEffect, Suspense } from 'react'
-import { Box, TextField, IconButton, Paper, Typography, Avatar, CircularProgress, InputAdornment } from '@mui/material'
+import {
+  Box,
+  TextField,
+  IconButton,
+  Paper,
+  Typography,
+  Avatar,
+  CircularProgress,
+  InputAdornment,
+  Drawer
+} from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
 import SendIcon from '@mui/icons-material/Send'
@@ -14,7 +24,15 @@ import RefinementQuestions from '../(root)/components/RefinementQuestions'
 import Turn from '../(root)/components/turn'
 import { useSearchParams } from 'next/navigation'
 import { ROUTES } from '../config/api'
-import { ProductResult, RefinementQuestion, TurnHistoryItem, AppliedFilter, TurnCache } from '../config/type'
+import {
+  ProductResult,
+  RefinementQuestion,
+  TurnHistoryItem,
+  AppliedFilter,
+  TurnCache,
+  ConversationChat,
+  ConversationTurn
+} from '../config/type'
 
 interface SearchResponse {
   status: string
@@ -28,6 +46,22 @@ interface SearchResponse {
   query?: {
     filters_applied?: AppliedFilter[]
   }
+}
+
+interface ConversationChatsResponse {
+  status: string
+  limit: number
+  count: number
+  chats: ConversationChat[]
+}
+
+interface ConversationTurnsResponse {
+  status: string
+  chat_id: string
+  limit: number
+  count: number
+  rehydrate: boolean
+  turns: ConversationTurn[]
 }
 
 interface Message {
@@ -95,11 +129,15 @@ const SearchContent: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([])
   const [selectedProducts, setSelectedProducts] = useState<ProductResult[]>([])
-  const [thinkingMessageId, setThinkingMessageId] = useState<string | null>(null)
-  const [thinkingDots, setThinkingDots] = useState('')
+  const [chats, setChats] = useState<ConversationChat[]>([])
+  const [activeChatId, setActiveChatId] = useState<string | null>(null)
+  const [isChatsLoading, setIsChatsLoading] = useState(false)
+  const [isTurnsLoading, setIsTurnsLoading] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const skipNextAutoScrollRef = useRef(false)
   const searchParams = useSearchParams()
 
   // Get individual params
@@ -121,6 +159,43 @@ const SearchContent: React.FC = () => {
       .replace(/[^a-z0-9]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
+
+  const formatRelativeTime = (value: string) => {
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return value
+    const diffMs = date.getTime() - Date.now()
+    const diffMinutes = Math.round(diffMs / (1000 * 60))
+    const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+    if (Math.abs(diffMinutes) < 60) return rtf.format(diffMinutes, 'minute')
+    const diffHours = Math.round(diffMinutes / 60)
+    if (Math.abs(diffHours) < 24) return rtf.format(diffHours, 'hour')
+    const diffDays = Math.round(diffHours / 24)
+    return rtf.format(diffDays, 'day')
+  }
+
+  const toTurnHistory = (turns: ConversationTurn[] | undefined): TurnHistoryItem[] => {
+    if (!turns || turns.length === 0) return []
+    return turns.map((turn) => ({
+      turn_index: turn.turn_index,
+      role: turn.role,
+      match_count: turn.match_ids?.length ?? turn.items?.length ?? 0,
+      filters_applied: turn.filters_applied ?? [],
+      selected_filters: turn.selected_filters ?? [],
+      refinement_questions: turn.refinement_questions ?? [],
+      created_at: turn.created_at,
+      parent_turn: turn.parent_turn,
+      is_original: turn.is_original
+    }))
+  }
+
+  const toProducts = (items: ProductResult[] | undefined): ProductResult[] => {
+    if (!items || items.length === 0) return []
+    return items.map((item) => ({
+      id: item.id,
+      score: item.score,
+      metadata: item.metadata
+    }))
+  }
 
   const getSelectedFiltersForTurn = (turnHistory: TurnHistoryItem[] | undefined, turnIndex: number | undefined) => {
     if (!turnHistory || typeof turnIndex !== 'number') return {}
@@ -214,7 +289,8 @@ const SearchContent: React.FC = () => {
       filtersApplied: resolveFiltersApplied(data),
       selectedFilters: resolveSelectedFilters(data),
       totalMatches: data.total_matches,
-      groupedMatches: data.grouped_matches
+      groupedMatches: data.grouped_matches,
+      isHydrated: true
     }
 
     if (data.turn_history && data.turn_history.length > 0) {
@@ -240,10 +316,42 @@ const SearchContent: React.FC = () => {
     if (!message) return
     if (turnIndex === message.currentTurn) return
 
-    const cached = message.turnCache?.[turnIndex]
+    let cached = message.turnCache?.[turnIndex]
     if (!cached) {
-      setFilterError(`Turn ${turnIndex} is not cached. Please run a new search.`)
+      setFilterError(`Turn ${turnIndex} is not cached.`)
       return
+    }
+    if (!cached.isHydrated && message.chatId) {
+      try {
+        const data = await fetchTurns(message.chatId, true)
+        const rehydratedTurn = data.turns.find((turn) => turn.turn_index === turnIndex)
+        if (rehydratedTurn) {
+          const hydratedMatches = toProducts(rehydratedTurn.items)
+          const hydratedCache: TurnCache = {
+            matches: hydratedMatches,
+            refinementQuestions: rehydratedTurn.refinement_questions ?? cached.refinementQuestions ?? [],
+            filtersApplied: rehydratedTurn.filters_applied ?? cached.filtersApplied ?? [],
+            selectedFilters: rehydratedTurn.selected_filters ?? cached.selectedFilters ?? [],
+            isHydrated: true
+          }
+          cached = hydratedCache
+          setMessages((prev) =>
+            prev.map((m) => {
+              if (m.id !== messageId) return m
+              return {
+                ...m,
+                turnCache: {
+                  ...(m.turnCache ?? {}),
+                  [turnIndex]: hydratedCache
+                }
+              }
+            })
+          )
+        }
+      } catch (error) {
+        console.error('Turn rehydrate failed:', error)
+        setFilterError(`Failed to load cards for turn ${turnIndex}.`)
+      }
     }
 
     const nextSelectedFilters = getSelectedFiltersFromQuestions(cached.selectedFilters, cached.refinementQuestions)
@@ -270,8 +378,145 @@ const SearchContent: React.FC = () => {
   }
 
   useEffect(() => {
+    if (skipNextAutoScrollRef.current) {
+      skipNextAutoScrollRef.current = false
+      return
+    }
     scrollToBottom()
   }, [messages])
+
+  const fetchChats = async () => {
+    setIsChatsLoading(true)
+    try {
+      const response = await fetch(`${ROUTES.CHATS}?limit=50`, {
+        method: 'GET',
+        headers: { 'X-API-Key': process.env.NEXT_PUBLIC_API_KEY as string, accept: 'application/json' }
+      })
+      if (!response.ok) throw new Error(`API error: ${response.status}`)
+      const data: ConversationChatsResponse = await response.json()
+      setChats(data.chats ?? [])
+    } catch (error) {
+      console.error('Chats fetch failed:', error)
+      setChats([])
+    } finally {
+      setIsChatsLoading(false)
+    }
+  }
+
+  const fetchTurns = async (chatId: string, rehydrate?: boolean): Promise<ConversationTurnsResponse> => {
+    const params = new URLSearchParams()
+    params.set('chat_id', chatId)
+    params.set('limit', '50')
+    if (typeof rehydrate === 'boolean') {
+      params.set('rehydrate', rehydrate ? 'true' : 'false')
+    }
+    const response = await fetch(`${ROUTES.TURNS}?${params.toString()}`, {
+      method: 'GET',
+      headers: { 'X-API-Key': process.env.NEXT_PUBLIC_API_KEY as string, accept: 'application/json' }
+    })
+    if (!response.ok) throw new Error(`API error: ${response.status}`)
+    return response.json()
+  }
+
+  const loadConversation = async (chatId: string) => {
+    setIsTurnsLoading(true)
+    setActiveChatId(chatId)
+    setFilterError(null)
+    try {
+      const data = await fetchTurns(chatId)
+      const turnHistory = toTurnHistory(data.turns)
+      const newestTurn = turnHistory.length > 0 ? turnHistory[0] : undefined
+      const nextTurnCache: Record<number, TurnCache> = {}
+      data.turns.forEach((turn) => {
+        nextTurnCache[turn.turn_index] = {
+          matches: toProducts(turn.items),
+          refinementQuestions: turn.refinement_questions ?? [],
+          filtersApplied: turn.filters_applied ?? [],
+          selectedFilters: turn.selected_filters ?? [],
+          isHydrated: true
+        }
+      })
+      const newestMatches = newestTurn ? nextTurnCache[newestTurn.turn_index]?.matches ?? [] : []
+      const newestQuestions = newestTurn ? nextTurnCache[newestTurn.turn_index]?.refinementQuestions ?? [] : []
+
+      const botMessage: Message = {
+        id: `${Date.now()}-conversation`,
+        type: 'bot',
+        content: turnHistory.length > 0 ? '' : 'No turns in this chat yet.',
+        timestamp: new Date(),
+        chatId: chatId,
+        currentTurn: newestTurn?.turn_index,
+        turnHistory: turnHistory,
+        turnCache: nextTurnCache,
+        searchResults: newestMatches,
+        refinementQuestions: newestQuestions,
+        selectedFilters: getSelectedFiltersForTurn(turnHistory, newestTurn?.turn_index)
+      }
+      skipNextAutoScrollRef.current = true
+      setMessages([botMessage])
+      setActiveBotMessageId(botMessage.id)
+    } catch (error) {
+      console.error('Turns fetch failed:', error)
+      setFilterError('Sorry, failed to load this conversation.')
+      setMessages([])
+    } finally {
+      setIsTurnsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void fetchChats()
+  }, [])
+
+  const handleHeaderSidebarToggle = () => {
+    setIsSidebarOpen((prev) => !prev)
+  }
+
+  const renderConversationItems = (onSelect?: () => void) => {
+    if (isChatsLoading) {
+      return (
+        <Box sx={{ py: 2, display: 'flex', justifyContent: 'center' }}>
+          <CircularProgress size={24} />
+        </Box>
+      )
+    }
+    if (chats.length === 0) {
+      return (
+        <Typography variant="body2" sx={{ color: 'rgba(236,244,255,0.85)' }}>
+          No chats yet.
+        </Typography>
+      )
+    }
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {chats.map((chat) => (
+          <Paper
+            key={`${chat.chat_id}-${chat.turn_index}`}
+            onClick={() => {
+              void loadConversation(chat.chat_id)
+              onSelect?.()
+            }}
+            sx={{
+              p: 1.2,
+              cursor: 'pointer',
+              border: activeChatId === chat.chat_id ? '1px solid rgba(198,226,255,0.9)' : '1px solid rgba(198,226,255,0.35)',
+              backgroundColor: activeChatId === chat.chat_id ? 'rgba(197,224,255,0.22)' : 'rgba(186,214,248,0.12)'
+            }}
+          >
+            <Typography variant="body2" sx={{ fontWeight: 600, color: '#f3f8ff' }} noWrap>
+              {chat.query || '(no query text)'}
+            </Typography>
+            <Typography variant="caption" sx={{ display: 'block', color: 'rgba(231,242,255,0.92)' }}>
+              Turn {chat.turn_index} • {chat.match_count} items
+            </Typography>
+            <Typography variant="caption" sx={{ display: 'block', color: 'rgba(220,235,255,0.9)' }}>
+              <span suppressHydrationWarning>{formatRelativeTime(chat.created_at)}</span>
+            </Typography>
+          </Paper>
+        ))}
+      </Box>
+    )
+  }
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value)
@@ -443,6 +688,7 @@ const SearchContent: React.FC = () => {
           }
         })
       )
+      void fetchChats()
     } catch (error) {
       console.error('Filter failed:', error)
       setFilterError('Sorry, something went wrong while applying that filter.')
@@ -503,6 +749,7 @@ const SearchContent: React.FC = () => {
             : m
         )
       )
+      void fetchChats()
     } catch (error) {
       console.error('Reset failed:', error)
       setFilterError('Sorry, something went wrong while resetting refinements.')
@@ -572,6 +819,8 @@ const SearchContent: React.FC = () => {
       }
       setMessages((prev) => [...prev, botResponse])
       setActiveBotMessageId(botResponse.id)
+      setActiveChatId(nextChatId)
+      void fetchChats()
     } catch {
       const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -592,8 +841,8 @@ const SearchContent: React.FC = () => {
   }
 
   return (
-    <MainLayout>
-      {(isLoading || isFiltering) && (
+    <MainLayout onSidebarToggle={handleHeaderSidebarToggle}>
+      {(isLoading || isFiltering || isTurnsLoading) && (
         <Box
           sx={{
             position: 'fixed',
@@ -629,6 +878,43 @@ const SearchContent: React.FC = () => {
           </Box>
         </Box>
       )}
+      <Drawer
+        anchor="left"
+        open={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        PaperProps={{
+          sx: {
+            width: { xs: '86vw', md: 340 },
+            maxWidth: 360,
+            p: 2,
+            pt: 2.5,
+            background: 'linear-gradient(180deg, rgba(78,109,145,0.96) 0%, rgba(53,82,116,0.96) 100%)',
+            color: '#f4f8ff',
+            borderRight: '1px solid rgba(196,222,255,0.25)'
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#f4f8ff' }}>
+            Conversations
+          </Typography>
+          <IconButton size="small" onClick={() => setIsSidebarOpen(false)} aria-label="Close conversations" sx={{ color: '#f4f8ff' }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        {renderConversationItems(() => setIsSidebarOpen(false))}
+      </Drawer>
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: '1120px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          alignItems: 'flex-start'
+        }}
+      >
+        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {/* Messages Area */}
       {messages.length > 0 && (
         <Box
@@ -716,7 +1002,7 @@ const SearchContent: React.FC = () => {
                   </Paper>
                 )}
 
-                {message.searchResults && message.searchResults.length > 0 && (
+                {(message.turnHistory?.length || (message.searchResults && message.searchResults.length > 0)) && (
                   <Box sx={{ mt: 1, width: '100%' }}>
                     {message.turnHistory && message.turnHistory.length > 0 && (
                       <Turn
@@ -743,15 +1029,17 @@ const SearchContent: React.FC = () => {
                           onReset={() => resetRefinements(message.id)}
                         />
                       )}
-                    {renderSearchResults(
-                      message.searchResults,
-                      setSelectedProduct,
-                      setIsDialogOpen,
-                      selectedProductIds,
-                      setSelectedProductIds,
-                      setSelectedProducts,
-                      selectedProducts
-                    )}
+                    {message.searchResults &&
+                      message.searchResults.length > 0 &&
+                      renderSearchResults(
+                        message.searchResults,
+                        setSelectedProduct,
+                        setIsDialogOpen,
+                        selectedProductIds,
+                        setSelectedProductIds,
+                        setSelectedProducts,
+                        selectedProducts
+                      )}
                   </Box>
                 )}
               </Box>
@@ -1051,7 +1339,6 @@ const SearchContent: React.FC = () => {
           </Box>
         </Paper>
       )}
-
       {selectedProduct && (
         <ProductDetailsDialog
           open={isDialogOpen}
@@ -1063,6 +1350,8 @@ const SearchContent: React.FC = () => {
           setSelectedProducts={setSelectedProducts}
         />
       )}
+        </Box>
+      </Box>
     </MainLayout>
   )
 }
