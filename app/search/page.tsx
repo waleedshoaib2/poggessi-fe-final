@@ -9,7 +9,8 @@ import {
   Avatar,
   CircularProgress,
   InputAdornment,
-  Drawer
+  Drawer,
+  Button
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
@@ -108,11 +109,11 @@ const TypingDots: React.FC = () => {
       ))}
 
       <style>{`
-        @keyframes typing-dot {
-          0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
-          40% { transform: scale(1); opacity: 1; }
-        }
-      `}</style>
+          @keyframes typing-dot {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; }
+          }
+        `}</style>
     </Box>
   )
 }
@@ -436,8 +437,8 @@ const SearchContent: React.FC = () => {
           isHydrated: true
         }
       })
-      const newestMatches = newestTurn ? nextTurnCache[newestTurn.turn_index]?.matches ?? [] : []
-      const newestQuestions = newestTurn ? nextTurnCache[newestTurn.turn_index]?.refinementQuestions ?? [] : []
+      const newestMatches = newestTurn ? (nextTurnCache[newestTurn.turn_index]?.matches ?? []) : []
+      const newestQuestions = newestTurn ? (nextTurnCache[newestTurn.turn_index]?.refinementQuestions ?? []) : []
 
       const botMessage: Message = {
         id: `${Date.now()}-conversation`,
@@ -499,7 +500,8 @@ const SearchContent: React.FC = () => {
             sx={{
               p: 1.2,
               cursor: 'pointer',
-              border: activeChatId === chat.chat_id ? '1px solid rgba(198,226,255,0.9)' : '1px solid rgba(198,226,255,0.35)',
+              border:
+                activeChatId === chat.chat_id ? '1px solid rgba(198,226,255,0.9)' : '1px solid rgba(198,226,255,0.35)',
               backgroundColor: activeChatId === chat.chat_id ? 'rgba(197,224,255,0.22)' : 'rgba(186,214,248,0.12)'
             }}
           >
@@ -882,28 +884,82 @@ const SearchContent: React.FC = () => {
         anchor="left"
         open={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        transitionDuration={400}
         PaperProps={{
           sx: {
-            width: { xs: '86vw', md: 340 },
-            maxWidth: 360,
+            width: { xs: '88vw', md: 360 },
             p: 2,
             pt: 2.5,
-            background: 'linear-gradient(180deg, rgba(78,109,145,0.96) 0%, rgba(53,82,116,0.96) 100%)',
-            color: '#f4f8ff',
-            borderRight: '1px solid rgba(196,222,255,0.25)'
+            background: 'linear-gradient(180deg, #5b8ec4 0%, #4a7db3 100%)',
+            color: '#ffffff',
+            borderRight: '1px solid rgba(255,255,255,0.15)',
+            backdropFilter: 'blur(16px)',
+            transition: 'all 0.4s ease',
+            opacity: 0.98
           }
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#f4f8ff' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2
+          }}
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: 0.5 }}>
             Conversations
           </Typography>
-          <IconButton size="small" onClick={() => setIsSidebarOpen(false)} aria-label="Close conversations" sx={{ color: '#f4f8ff' }}>
+
+          <IconButton
+            size="small"
+            onClick={() => setIsSidebarOpen(false)}
+            sx={{
+              color: '#fff',
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.2)' }
+            }}
+          >
             <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
-        {renderConversationItems(() => setIsSidebarOpen(false))}
+
+        <Button
+          fullWidth
+          variant="contained"
+          sx={{
+            mb: 2,
+            borderRadius: '12px',
+            backgroundColor: 'primary.main',
+            color: '#fff',
+            fontWeight: 600,
+            textTransform: 'none',
+            boxShadow: '0 6px 18px rgba(0,0,0,0.15)',
+            '&:hover': {
+              backgroundColor: 'primary.main'
+            }
+          }}
+          onClick={() => {
+            setMessages([])
+            setActiveChatId(null)
+            setIsSidebarOpen(false)
+          }}
+        >
+          + New Chat
+        </Button>
+
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+            overflowY: 'auto'
+          }}
+        >
+          {renderConversationItems(() => setIsSidebarOpen(false))}
+        </Box>
       </Drawer>
+
       <Box
         sx={{
           width: '100%',
@@ -915,441 +971,452 @@ const SearchContent: React.FC = () => {
         }}
       >
         <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      {/* Messages Area */}
-      {messages.length > 0 && (
-        <Box
-          sx={{
-            flex: 1,
-            overflowY: 'auto',
-            display: 'flex',
-            width: '100%',
-            padding: '32px 24px',
-            borderRadius: '16px',
-            maxWidth: '900px',
-            flexDirection: 'column',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            gap: 3,
-            mb: 3,
-            pr: 1,
-            '&::-webkit-scrollbar': {
-              width: '8px'
-            },
-            '&::-webkit-scrollbar-track': {
-              background: 'transparent'
-            },
-            '&::-webkit-scrollbar-thumb': {
-              background: 'rgba(255,255,255,0.2)',
-              borderRadius: '4px'
-            }
-          }}
-        >
-          {messages.map((message) => (
+          {/* Messages Area */}
+          {messages.length > 0 && (
             <Box
-              key={message.id}
               sx={{
+                flex: 1,
+                overflowY: 'auto',
                 display: 'flex',
-                gap: 2,
-                alignSelf: message.type === 'user' ? 'flex-end' : 'flex-start',
-                maxWidth: message.type === 'user' ? '85%' : '100%',
-                flexDirection: message.type === 'user' ? 'row-reverse' : 'row',
-                width: message.searchResults ? '100%' : 'auto'
+                width: '100%',
+                padding: '32px 24px',
+                borderRadius: '16px',
+                maxWidth: '900px',
+                flexDirection: 'column',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                gap: 3,
+                mb: 3,
+                pr: 1,
+                '&::-webkit-scrollbar': {
+                  width: '8px'
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: 'transparent'
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: 'rgba(255,255,255,0.2)',
+                  borderRadius: '4px'
+                }
               }}
             >
-              <Avatar
-                sx={{
-                  bgcolor: message.type === 'user' ? 'primary.main' : 'secondary.main',
-                  width: 32,
-                  height: 32,
-                  flexShrink: 0
-                }}
-              >
-                {message.type === 'user' ? <PersonIcon fontSize="small" /> : <SmartToyIcon fontSize="small" />}
-              </Avatar>
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: '100%' }}>
-                {(message.content || message.image) && (
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 2,
-                      borderRadius: '12px',
-                      backgroundColor: message.type === 'user' ? 'primary.light' : 'background.paper',
-                      color: message.type === 'user' ? 'primary.contrastText' : 'text.primary',
-                      maxWidth: '100%'
-                    }}
-                  >
-                    {message.image && (
-                      <Box
-                        component="img"
-                        src={message.image}
-                        alt="User upload"
-                        sx={{
-                          maxWidth: '100%',
-                          maxHeight: '200px',
-                          borderRadius: '8px',
-                          mb: message.content ? 1 : 0,
-                          display: 'block'
-                        }}
-                      />
-                    )}
-                    {message.content && (
-                      <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                        {message.content}
-                      </Typography>
-                    )}
-                  </Paper>
-                )}
-
-                {(message.turnHistory?.length || (message.searchResults && message.searchResults.length > 0)) && (
-                  <Box sx={{ mt: 1, width: '100%' }}>
-                    {message.turnHistory && message.turnHistory.length > 0 && (
-                      <Turn
-                        turn_history={message.turnHistory}
-                        currentTurn={message.currentTurn}
-                        onTurnClick={(turnIndex) => void switchToTurn(message.id, turnIndex)}
-                        disabled={message.id !== activeBotMessageId || isFiltering}
-                        formatAppliedFilters={formatAppliedFilters}
-                      />
-                    )}
-                    {message.type === 'bot' &&
-                      message.refinementQuestions &&
-                      message.refinementQuestions.length > 0 && (
-                        <RefinementQuestions
-                          key={`${message.id}-${message.refinementVersion ?? 0}`}
-                          questions={message.refinementQuestions}
-                          selectedAnswers={message.selectedFilters ?? {}}
-                          totalMatches={message.originalTotalMatches ?? message.totalMatches}
-                          groupedMatches={message.groupedMatches}
-                          loading={isFiltering}
-                          disabled={message.id !== activeBotMessageId}
-                          error={message.id === activeBotMessageId ? filterError : null}
-                          onApply={(nextSelected) => applyFilters(message.id, nextSelected)}
-                          onReset={() => resetRefinements(message.id)}
-                        />
-                      )}
-                    {message.searchResults &&
-                      message.searchResults.length > 0 &&
-                      renderSearchResults(
-                        message.searchResults,
-                        setSelectedProduct,
-                        setIsDialogOpen,
-                        selectedProductIds,
-                        setSelectedProductIds,
-                        setSelectedProducts,
-                        selectedProducts
-                      )}
-                  </Box>
-                )}
-              </Box>
-            </Box>
-          ))}
-          <div ref={messagesEndRef} />
-        </Box>
-      )}
-      {messages.length > 0 ? (
-        <Box sx={{ position: 'relative', width: '100%', maxWidth: '900px' }}>
-          {selectedImage && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: -70,
-                left: 10,
-                zIndex: 10,
-                bgcolor: 'rgba(255,255,255,0.9)',
-                p: 0.5,
-                borderRadius: 1,
-                boxShadow: 1
-              }}
-            >
-              <Box
-                component="img"
-                src={selectedImage}
-                alt="Preview"
-                sx={{
-                  height: 60,
-                  width: 'auto',
-                  borderRadius: 1
-                }}
-              />
-              <IconButton
-                size="small"
-                onClick={clearSelectedImage}
-                sx={{
-                  position: 'absolute',
-                  top: -8,
-                  right: -12,
-                  bgcolor: 'background.paper',
-                  border: '1px solid #ddd',
-                  '&:hover': { bgcolor: '#f5f5f5' },
-                  width: 20,
-                  height: 20
-                }}
-              >
-                <CloseIcon sx={{ fontSize: 14 }} />
-              </IconButton>
-            </Box>
-          )}
-
-          <input
-            type="file"
-            hidden
-            ref={fileInputRef}
-            accept="image/*"
-            onChange={handleFileSelect}
-            onClick={(e) => ((e.target as HTMLInputElement).value = '')}
-          />
-
-          <TextField
-            fullWidth
-            placeholder="Search here.."
-            multiline
-            maxRows={4}
-            value={inputValue}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: '#ffffff',
-                borderRadius: '30px',
-                paddingRight: '4px',
-                '& fieldset': {
-                  border: 'none'
-                },
-                '&:hover fieldset': {
-                  border: 'none'
-                },
-                '&.Mui-focused fieldset': {
-                  border: 'none'
-                }
-              },
-              '& .MuiOutlinedInput-input': {
-                padding: '8px px',
-                fontSize: '15px',
-                color: '#333',
-                '&::placeholder': {
-                  color: '#999',
-                  opacity: 1
-                }
-              }
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: '#666' }} />
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Box sx={{ display: 'flex', gap: 0.5 }}>
-                    <IconButton
-                      onClick={triggerFileSelect}
-                      disabled={isLoading || isFiltering}
-                      sx={{
-                        backgroundColor: '#5b8ec4',
-                        color: '#ffffff',
-                        width: '40px',
-                        height: '40px',
-                        mr: 1,
-                        '&:hover': {
-                          backgroundColor: '#4a7ab0'
-                        }
-                      }}
-                    >
-                      <CameraAltIcon sx={{ fontSize: '20px' }} />
-                    </IconButton>
-                    {(inputValue.trim() || selectedImage) && (
-                      <IconButton
-                        onClick={handleSendMessage}
-                        disabled={isLoading || isFiltering}
-                        sx={{
-                          backgroundColor: '#5b8ec4',
-                          color: '#ffffff',
-                          width: '40px',
-                          mr: 1,
-                          height: '40px',
-                          '&:hover': {
-                            backgroundColor: '#4a7ab0'
-                          }
-                        }}
-                      >
-                        <SendIcon sx={{ fontSize: '20px' }} />
-                      </IconButton>
-                    )}
-                  </Box>
-                </InputAdornment>
-              )
-            }}
-          />
-        </Box>
-      ) : (
-        <Paper
-          elevation={3}
-          sx={{
-            width: '100%',
-            maxWidth: '900px', // Removed to let Grid control width
-            // mt: 5, // Managed by Grid spacing
-            minHeight: '0vh',
-            maxHeight: '70vh',
-            my: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '32px 24px',
-            borderRadius: '16px',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}
-        >
-          {/* Input Area */}
-          <Box sx={{ position: 'relative' }}>
-            {selectedImage && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: -70,
-                  left: 10,
-                  zIndex: 10,
-                  bgcolor: 'rgba(255,255,255,0.9)',
-                  p: 0.5,
-                  borderRadius: 1,
-                  boxShadow: 1
-                }}
-              >
+              {messages.map((message) => (
                 <Box
-                  component="img"
-                  src={selectedImage}
-                  alt="Preview"
+                  key={message.id}
                   sx={{
-                    height: 60,
-                    width: 'auto',
-                    borderRadius: 1
-                  }}
-                />
-                <IconButton
-                  size="small"
-                  onClick={clearSelectedImage}
-                  sx={{
-                    position: 'absolute',
-                    top: -8,
-                    right: -8,
-                    bgcolor: 'background.paper',
-                    border: '1px solid #ddd',
-                    '&:hover': { bgcolor: '#f5f5f5' },
-                    width: 20,
-                    height: 20
+                    display: 'flex',
+                    gap: 2,
+                    alignSelf: message.type === 'user' ? 'flex-end' : 'flex-start',
+                    maxWidth: message.type === 'user' ? '85%' : '100%',
+                    flexDirection: message.type === 'user' ? 'row-reverse' : 'row',
+                    width: message.searchResults ? '100%' : 'auto'
                   }}
                 >
-                  <CloseIcon sx={{ fontSize: 14 }} />
-                </IconButton>
-              </Box>
-            )}
+                  <Avatar
+                    sx={{
+                      bgcolor: message.type === 'user' ? 'primary.main' : 'secondary.main',
+                      width: 32,
+                      height: 32,
+                      flexShrink: 0
+                    }}
+                  >
+                    {message.type === 'user' ? <PersonIcon fontSize="small" /> : <SmartToyIcon fontSize="small" />}
+                  </Avatar>
 
-            <input
-              type="file"
-              hidden
-              ref={fileInputRef}
-              accept="image/*"
-              onChange={handleFileSelect}
-              onClick={(e) => ((e.target as HTMLInputElement).value = '')}
-            />
-
-            <TextField
-              fullWidth
-              placeholder="Search here.."
-              multiline
-              maxRows={4}
-              value={inputValue}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#ffffff',
-                  borderRadius: '30px',
-                  paddingRight: '4px',
-                  '& fieldset': {
-                    border: 'none'
-                  },
-                  '&:hover fieldset': {
-                    border: 'none'
-                  },
-                  '&.Mui-focused fieldset': {
-                    border: 'none'
-                  }
-                },
-                '& .MuiOutlinedInput-input': {
-                  padding: '8px px',
-                  fontSize: '15px',
-                  color: '#333',
-                  '&::placeholder': {
-                    color: '#999',
-                    opacity: 1
-                  }
-                }
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ color: '#666' }} />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Box sx={{ display: 'flex', gap: 0.5 }}>
-                      <IconButton
-                        onClick={triggerFileSelect}
-                        disabled={isLoading || isFiltering}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', maxWidth: '100%' }}>
+                    {(message.content || message.image) && (
+                      <Paper
+                        elevation={0}
                         sx={{
-                          backgroundColor: '#5b8ec4',
-                          color: '#ffffff',
-                          width: '40px',
-                          mr: 1,
-                          height: '40px',
-                          '&:hover': {
-                            backgroundColor: '#4a7ab0'
-                          }
+                          p: 2,
+                          borderRadius: '12px',
+                          backgroundColor: message.type === 'user' ? 'primary.light' : 'background.paper',
+                          color: message.type === 'user' ? 'primary.contrastText' : 'text.primary',
+                          maxWidth: '100%'
                         }}
                       >
-                        <CameraAltIcon sx={{ fontSize: '20px' }} />
-                      </IconButton>
-                      {(inputValue.trim() || selectedImage) && (
+                        {message.image && (
+                          <Box
+                            component="img"
+                            src={message.image}
+                            alt="User upload"
+                            sx={{
+                              maxWidth: '100%',
+                              maxHeight: '200px',
+                              borderRadius: '8px',
+                              mb: message.content ? 1 : 0,
+                              display: 'block'
+                            }}
+                          />
+                        )}
+                        {message.content && (
+                          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                            {message.content}
+                          </Typography>
+                        )}
+                      </Paper>
+                    )}
+
+                    {(message.turnHistory?.length || (message.searchResults && message.searchResults.length > 0)) && (
+                      <Box sx={{ mt: 1, width: '100%' }}>
+                        {message.turnHistory && message.turnHistory.length > 0 && (
+                          <Turn
+                            turn_history={message.turnHistory}
+                            currentTurn={message.currentTurn}
+                            onTurnClick={(turnIndex) => void switchToTurn(message.id, turnIndex)}
+                            disabled={message.id !== activeBotMessageId || isFiltering}
+                            formatAppliedFilters={formatAppliedFilters}
+                          />
+                        )}
+                        {message.type === 'bot' &&
+                          message.refinementQuestions &&
+                          message.refinementQuestions.length > 0 && (
+                            <RefinementQuestions
+                              key={`${message.id}-${message.refinementVersion ?? 0}`}
+                              questions={message.refinementQuestions}
+                              selectedAnswers={message.selectedFilters ?? {}}
+                              totalMatches={message.originalTotalMatches ?? message.totalMatches}
+                              groupedMatches={message.groupedMatches}
+                              loading={isFiltering}
+                              disabled={message.id !== activeBotMessageId}
+                              error={message.id === activeBotMessageId ? filterError : null}
+                              onApply={(nextSelected) => applyFilters(message.id, nextSelected)}
+                              onReset={() => resetRefinements(message.id)}
+                            />
+                          )}
+                        {message.searchResults &&
+                          message.searchResults.length > 0 &&
+                          renderSearchResults(
+                            message.searchResults,
+                            setSelectedProduct,
+                            setIsDialogOpen,
+                            selectedProductIds,
+                            setSelectedProductIds,
+                            setSelectedProducts,
+                            selectedProducts
+                          )}
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              ))}
+              <div ref={messagesEndRef} />
+            </Box>
+          )}
+          {messages.length > 0 ? (
+            <Box sx={{ position: 'relative', width: '100%', maxWidth: '900px' }}>
+              {selectedImage && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: -70,
+                    left: 10,
+                    zIndex: 10,
+                    bgcolor: 'rgba(255,255,255,0.9)',
+                    p: 0.5,
+                    borderRadius: 1,
+                    boxShadow: 1
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={selectedImage}
+                    alt="Preview"
+                    sx={{
+                      height: 60,
+                      width: 'auto',
+                      borderRadius: 1
+                    }}
+                  />
+                  <IconButton
+                    size="small"
+                    onClick={clearSelectedImage}
+                    sx={{
+                      position: 'absolute',
+                      top: -8,
+                      right: -12,
+                      bgcolor: 'background.paper',
+                      border: '1px solid #ddd',
+                      '&:hover': { bgcolor: '#f5f5f5' },
+                      width: 20,
+                      height: 20
+                    }}
+                  >
+                    <CloseIcon sx={{ fontSize: 14 }} />
+                  </IconButton>
+                </Box>
+              )}
+
+              <input
+                type="file"
+                hidden
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleFileSelect}
+                onClick={(e) => ((e.target as HTMLInputElement).value = '')}
+              />
+
+              <TextField
+                fullWidth
+                placeholder="Search here.."
+                multiline
+                maxRows={4}
+                value={inputValue}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#ffffff',
+                    borderRadius: '30px',
+                    paddingRight: '4px',
+                    '& fieldset': {
+                      border: 'none'
+                    },
+                    '&:hover fieldset': {
+                      border: 'none'
+                    },
+                    '&.Mui-focused fieldset': {
+                      border: 'none'
+                    }
+                  },
+                  '& .MuiOutlinedInput-input': {
+                    padding: '8px px',
+                    fontSize: '15px',
+                    color: '#333',
+                    '&::placeholder': {
+                      color: '#999',
+                      opacity: 1
+                    }
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ color: '#666' }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
                         <IconButton
-                          onClick={handleSendMessage}
+                          onClick={triggerFileSelect}
                           disabled={isLoading || isFiltering}
                           sx={{
                             backgroundColor: '#5b8ec4',
                             color: '#ffffff',
                             width: '40px',
-                            mr: 1,
                             height: '40px',
+                            mr: 1,
                             '&:hover': {
                               backgroundColor: '#4a7ab0'
                             }
                           }}
                         >
-                          <SendIcon sx={{ fontSize: '20px' }} />
+                          <CameraAltIcon sx={{ fontSize: '20px' }} />
                         </IconButton>
-                      )}
-                    </Box>
-                  </InputAdornment>
-                )
+                        {(inputValue.trim() || selectedImage) && (
+                          <IconButton
+                            onClick={handleSendMessage}
+                            disabled={isLoading || isFiltering}
+                            sx={{
+                              backgroundColor: '#5b8ec4',
+                              color: '#ffffff',
+                              width: '40px',
+                              mr: 1,
+                              height: '40px',
+                              '&:hover': {
+                                backgroundColor: '#4a7ab0'
+                              }
+                            }}
+                          >
+                            <SendIcon sx={{ fontSize: '20px' }} />
+                          </IconButton>
+                        )}
+                      </Box>
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                width: '100vw',
+                height: '100vh',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'transparent'
               }}
+            >
+              <Paper
+                elevation={3}
+                sx={{
+                  width: '100%',
+                  maxWidth: '900px', // Removed to let Grid control width
+                  // mt: 5, // Managed by Grid spacing
+                  minHeight: '0vh',
+                  maxHeight: '70vh',
+                  my: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: '32px 24px',
+                  borderRadius: '16px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                }}
+              >
+                {/* Input Area */}
+                <Box sx={{ position: 'relative' }}>
+                  {selectedImage && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: -70,
+                        left: 10,
+                        zIndex: 10,
+                        bgcolor: 'rgba(255,255,255,0.9)',
+                        p: 0.5,
+                        borderRadius: 1,
+                        boxShadow: 1
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={selectedImage}
+                        alt="Preview"
+                        sx={{
+                          height: 60,
+                          width: '100%',
+                          borderRadius: 1
+                        }}
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={clearSelectedImage}
+                        sx={{
+                          position: 'absolute',
+                          top: -8,
+                          right: -8,
+                          bgcolor: 'background.paper',
+                          border: '1px solid #ddd',
+                          '&:hover': { bgcolor: '#f5f5f5' },
+                          width: 20,
+                          height: 20
+                        }}
+                      >
+                        <CloseIcon sx={{ fontSize: 14 }} />
+                      </IconButton>
+                    </Box>
+                  )}
+
+                  <input
+                    type="file"
+                    hidden
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    onClick={(e) => ((e.target as HTMLInputElement).value = '')}
+                  />
+
+                  <TextField
+                    fullWidth
+                    placeholder="Search here.."
+                    multiline
+                    maxRows={4}
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: '#ffffff',
+                        borderRadius: '30px',
+                        paddingRight: '4px',
+                        '& fieldset': {
+                          border: 'none'
+                        },
+                        '&:hover fieldset': {
+                          border: 'none'
+                        },
+                        '&.Mui-focused fieldset': {
+                          border: 'none'
+                        }
+                      },
+                      '& .MuiOutlinedInput-input': {
+                        padding: '8px px',
+                        fontSize: '15px',
+                        color: '#333',
+                        '&::placeholder': {
+                          color: '#999',
+                          opacity: 1
+                        }
+                      }
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: '#666' }} />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <Box sx={{ display: 'flex', gap: 0.5 }}>
+                            <IconButton
+                              onClick={triggerFileSelect}
+                              disabled={isLoading || isFiltering}
+                              sx={{
+                                backgroundColor: '#5b8ec4',
+                                color: '#ffffff',
+                                width: '40px',
+                                mr: 1,
+                                height: '40px',
+                                '&:hover': {
+                                  backgroundColor: '#4a7ab0'
+                                }
+                              }}
+                            >
+                              <CameraAltIcon sx={{ fontSize: '20px' }} />
+                            </IconButton>
+                            {(inputValue.trim() || selectedImage) && (
+                              <IconButton
+                                onClick={handleSendMessage}
+                                disabled={isLoading || isFiltering}
+                                sx={{
+                                  backgroundColor: '#5b8ec4',
+                                  color: '#ffffff',
+                                  width: '40px',
+                                  mr: 1,
+                                  height: '40px',
+                                  '&:hover': {
+                                    backgroundColor: '#4a7ab0'
+                                  }
+                                }}
+                              >
+                                <SendIcon sx={{ fontSize: '20px' }} />
+                              </IconButton>
+                            )}
+                          </Box>
+                        </InputAdornment>
+                      )
+                    }}
+                  />
+                </Box>
+              </Paper>
+            </Box>
+          )}
+          {selectedProduct && (
+            <ProductDetailsDialog
+              open={isDialogOpen}
+              onClose={handleCloseDialog}
+              product={selectedProduct}
+              selectedProductIds={selectedProductIds}
+              selectedProducts={selectedProducts}
+              setSelectedProductIds={setSelectedProductIds}
+              setSelectedProducts={setSelectedProducts}
             />
-          </Box>
-        </Paper>
-      )}
-      {selectedProduct && (
-        <ProductDetailsDialog
-          open={isDialogOpen}
-          onClose={handleCloseDialog}
-          product={selectedProduct}
-          selectedProductIds={selectedProductIds}
-          selectedProducts={selectedProducts}
-          setSelectedProductIds={setSelectedProductIds}
-          setSelectedProducts={setSelectedProducts}
-        />
-      )}
+          )}
         </Box>
       </Box>
     </MainLayout>
