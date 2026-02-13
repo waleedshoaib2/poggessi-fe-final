@@ -9,13 +9,7 @@ import MenuIcon from '@mui/icons-material/Menu'
 import Configuration, { NumResults } from './components/Configuration'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-function MainLayoutContent({
-  children,
-  onSidebarToggle
-}: {
-  children: React.ReactNode
-  onSidebarToggle?: () => void
-}) {
+function MainLayoutContent({ children, onSidebarToggle }: { children: React.ReactNode; onSidebarToggle?: () => void }) {
   // Initialize with a function to avoid accessing window during SSR
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
   const [numResults, setNumResults] = useState<NumResults>(3)

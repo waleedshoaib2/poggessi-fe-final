@@ -71,24 +71,25 @@ const renderSearchResults = (
             px: 2,
             py: 1.5,
             borderRadius: 3,
-            bgcolor: '#f0f6ff',
+
+            bgcolor: 'rgba(255,255,255,0.9)',
             border: '1px solid #d0e3ff',
             mb: 2
           }}
         >
-          <Typography sx={{ fontWeight: 600, color: '#1e3a8a' }}>
+          <Typography sx={{ fontWeight: 600, color: 'text.secondary' }}>
             {selectedProducts.length} item{selectedProducts.length > 1 ? 's' : ''} selected
           </Typography>
 
           <IconButton
             onClick={handleExport}
             sx={{
-              bgcolor: '#5b8ec4',
+              bgcolor: 'primary.main',
               color: '#fff',
               px: 2,
               borderRadius: 3,
               '&:hover': {
-                bgcolor: '#4a7ab0'
+                bgcolor: 'primary.main'
               }
             }}
           >
