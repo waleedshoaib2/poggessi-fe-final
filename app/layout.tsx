@@ -1,6 +1,8 @@
 import { CssBaseline } from '@mui/material'
 import { ThemeContextProvider } from './libs/mui/theme/context'
 import { Metadata } from 'next'
+import { GlobalStyles } from '@mui/material'
+
 export const metadata: Metadata = {
   title: {
     template: '%s | Pogessi',
@@ -24,6 +26,15 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <ThemeContextProvider>
           <CssBaseline />
+          <GlobalStyles
+            styles={{
+              html: { scrollbarWidth: 'none' },
+              body: { scrollbarWidth: 'none' },
+              'html::-webkit-scrollbar, body::-webkit-scrollbar': {
+                display: 'none'
+              }
+            }}
+          />
           {children}
         </ThemeContextProvider>
       </body>
