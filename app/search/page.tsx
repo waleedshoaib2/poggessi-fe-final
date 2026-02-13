@@ -1273,14 +1273,12 @@ const SearchContent: React.FC = () => {
                   {selectedImage && (
                     <Box
                       sx={{
-                        position: 'absolute',
-                        top: -70,
-                        left: 10,
-                        zIndex: 10,
-                        bgcolor: 'rgba(255,255,255,0.9)',
-                        p: 0.5,
-                        borderRadius: 1,
-                        boxShadow: 1
+                        position: 'relative',
+                        width: 110,
+                        height: 110,
+                        borderRadius: 3,
+                        overflow: 'hidden',
+                        mb: 1
                       }}
                     >
                       <Box
@@ -1288,26 +1286,26 @@ const SearchContent: React.FC = () => {
                         src={selectedImage}
                         alt="Preview"
                         sx={{
-                          height: 60,
                           width: '100%',
-                          borderRadius: 1
+                          height: '100%',
+                          objectFit: 'cover'
                         }}
                       />
+                      z{/* Close Button */}
                       <IconButton
                         size="small"
                         onClick={clearSelectedImage}
                         sx={{
                           position: 'absolute',
-                          top: -8,
-                          right: -8,
-                          bgcolor: 'background.paper',
-                          border: '1px solid #ddd',
-                          '&:hover': { bgcolor: '#f5f5f5' },
-                          width: 20,
-                          height: 20
+                          top: 6,
+                          right: 6,
+                          bgcolor: '#fff',
+                          width: 28,
+                          height: 28,
+                          '&:hover': { bgcolor: '#f5f5f5' }
                         }}
                       >
-                        <CloseIcon sx={{ fontSize: 14 }} />
+                        <CloseIcon sx={{ fontSize: 16 }} />
                       </IconButton>
                     </Box>
                   )}
