@@ -1105,140 +1105,157 @@ const SearchContent: React.FC = () => {
             </Box>
           )}
           {messages.length > 0 ? (
-            <Box sx={{ position: 'relative', width: '100%', maxWidth: '900px' }}>
-              {selectedImage && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: -70,
-                    left: 10,
-                    zIndex: 10,
-                    bgcolor: 'rgba(255,255,255,0.9)',
-                    p: 0.5,
-                    borderRadius: 1,
-                    boxShadow: 1
-                  }}
-                >
+            <Paper
+              elevation={3}
+              sx={{
+                width: '100%',
+                maxWidth: '900px', // Removed to let Grid control width
+                // mt: 5, // Managed by Grid spacing
+                minHeight: '0vh',
+                maxHeight: '70vh',
+                my: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '32px 24px',
+                borderRadius: '16px',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}
+            >
+              <Box sx={{ position: 'relative', width: '100%', maxWidth: '900px' }}>
+                {selectedImage && (
                   <Box
-                    component="img"
-                    src={selectedImage}
-                    alt="Preview"
                     sx={{
-                      height: 60,
-                      width: 'auto',
-                      borderRadius: 1
-                    }}
-                  />
-                  <IconButton
-                    size="small"
-                    onClick={clearSelectedImage}
-                    sx={{
-                      position: 'absolute',
-                      top: -8,
-                      right: -12,
-                      bgcolor: 'background.paper',
-                      border: '1px solid #ddd',
-                      '&:hover': { bgcolor: '#f5f5f5' },
-                      width: 20,
-                      height: 20
+                      position: 'relative',
+                      width: 110,
+                      height: 110,
+                      borderRadius: 3,
+                      overflow: 'hidden',
+                      mb: 1
                     }}
                   >
-                    <CloseIcon sx={{ fontSize: 14 }} />
-                  </IconButton>
-                </Box>
-              )}
+                    <Box
+                      component="img"
+                      src={selectedImage}
+                      alt="Preview"
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                    z{/* Close Button */}
+                    <IconButton
+                      size="small"
+                      onClick={clearSelectedImage}
+                      sx={{
+                        position: 'absolute',
+                        top: 6,
+                        right: 6,
+                        bgcolor: '#fff',
+                        width: 28,
+                        height: 28,
+                        '&:hover': { bgcolor: '#f5f5f5' }
+                      }}
+                    >
+                      <CloseIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Box>
+                )}
 
-              <input
-                type="file"
-                hidden
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleFileSelect}
-                onClick={(e) => ((e.target as HTMLInputElement).value = '')}
-              />
+                <input
+                  type="file"
+                  hidden
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  onClick={(e) => ((e.target as HTMLInputElement).value = '')}
+                />
 
-              <TextField
-                fullWidth
-                placeholder="Search here.."
-                multiline
-                maxRows={4}
-                value={inputValue}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#ffffff',
-                    borderRadius: '30px',
-                    paddingRight: '4px',
-                    '& fieldset': {
-                      border: 'none'
+                <TextField
+                  fullWidth
+                  placeholder="Search here.."
+                  multiline
+                  maxRows={4}
+                  value={inputValue}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: '#ffffff',
+                      borderRadius: '30px',
+                      paddingRight: '4px',
+                      '& fieldset': {
+                        border: 'none'
+                      },
+                      '&:hover fieldset': {
+                        border: 'none'
+                      },
+                      '&.Mui-focused fieldset': {
+                        border: 'none'
+                      }
                     },
-                    '&:hover fieldset': {
-                      border: 'none'
-                    },
-                    '&.Mui-focused fieldset': {
-                      border: 'none'
+                    '& .MuiOutlinedInput-input': {
+                      padding: '8px px',
+                      fontSize: '15px',
+                      color: '#333',
+                      '&::placeholder': {
+                        color: '#999',
+                        opacity: 1
+                      }
                     }
-                  },
-                  '& .MuiOutlinedInput-input': {
-                    padding: '8px px',
-                    fontSize: '15px',
-                    color: '#333',
-                    '&::placeholder': {
-                      color: '#999',
-                      opacity: 1
-                    }
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon sx={{ color: '#666' }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                        <IconButton
-                          onClick={triggerFileSelect}
-                          disabled={isLoading || isFiltering}
-                          sx={{
-                            backgroundColor: '#5b8ec4',
-                            color: '#ffffff',
-                            width: '40px',
-                            height: '40px',
-                            mr: 1,
-                            '&:hover': {
-                              backgroundColor: '#4a7ab0'
-                            }
-                          }}
-                        >
-                          <CameraAltIcon sx={{ fontSize: '20px' }} />
-                        </IconButton>
-                        {(inputValue.trim() || selectedImage) && (
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ color: '#666' }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
                           <IconButton
-                            onClick={handleSendMessage}
+                            onClick={triggerFileSelect}
                             disabled={isLoading || isFiltering}
                             sx={{
                               backgroundColor: '#5b8ec4',
                               color: '#ffffff',
                               width: '40px',
-                              mr: 1,
                               height: '40px',
+                              mr: 1,
                               '&:hover': {
                                 backgroundColor: '#4a7ab0'
                               }
                             }}
                           >
-                            <SendIcon sx={{ fontSize: '20px' }} />
+                            <CameraAltIcon sx={{ fontSize: '20px' }} />
                           </IconButton>
-                        )}
-                      </Box>
-                    </InputAdornment>
-                  )
-                }}
-              />
-            </Box>
+                          {(inputValue.trim() || selectedImage) && (
+                            <IconButton
+                              onClick={handleSendMessage}
+                              disabled={isLoading || isFiltering}
+                              sx={{
+                                backgroundColor: '#5b8ec4',
+                                color: '#ffffff',
+                                width: '40px',
+                                mr: 1,
+                                height: '40px',
+                                '&:hover': {
+                                  backgroundColor: '#4a7ab0'
+                                }
+                              }}
+                            >
+                              <SendIcon sx={{ fontSize: '20px' }} />
+                            </IconButton>
+                          )}
+                        </Box>
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
+            </Paper>
           ) : (
             <Box
               sx={{
