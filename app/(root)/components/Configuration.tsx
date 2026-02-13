@@ -48,18 +48,19 @@ const Configuration = ({ numResults, setNumResults, confidence, setConfidence }:
 
   return (
     <Paper
+      elevation={3}
       sx={{
-        width: { xs: '100%', sm: '300px', md: '350px' },
+        minHeight: '0vh',
+        maxHeight: '65vh',
+        display: 'flex',
+        minWidth: '18vw',
+        flexDirection: 'column',
         p: 3,
-        borderRadius: 3,
-        backgroundColor: 'rgba(30,30,30,0.8)',
+        borderRadius: 4,
+        backgroundColor: 'rgba(82, 78, 78, 0.1)',
         backdropFilter: 'blur(10px)',
         border: '1px solid rgba(255, 255, 255, 0.2)',
-        color: '#f5f5f5',
-        transition: 'all 0.2s ease',
-        '&:hover': { backgroundColor: 'rgba(30,30,30,0.9)' },
-        display: 'flex',
-        flexDirection: 'column'
+        color: 'white'
       }}
     >
       {/* Header */}

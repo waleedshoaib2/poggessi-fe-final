@@ -1,8 +1,10 @@
-
 // API Configuration
-export const apiURL = '/api';
+export const apiURL = '/api'
+
 // Navigation Routes
 export const ROUTES = {
   SEARCH: apiURL + '/search/hybrid',
-  FILTER: apiURL + '/search/filter'
-} as const;
+  FILTER: apiURL + '/search/filter',
+  CHATS: apiURL + '/conversation/chats',
+  TURNS: apiURL + '/conversation/turns'
+} as const

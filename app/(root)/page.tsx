@@ -1,7 +1,5 @@
-'use client'
-export default function HomePage() {
+import { redirect } from 'next/navigation'
 
-  return (
-    <></>
-  )
+export default function HomePage() {
+  redirect('/login')
 }

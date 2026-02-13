@@ -3,12 +3,19 @@
 import { AppBar, Box, Toolbar, IconButton, Popover, Tooltip, CircularProgress } from '@mui/material'
 import { MAIN_GRADIENT } from '../libs/mui/theme/palette'
 import Image from 'next/image'
-import { Fragment, Suspense, useEffect, useState } from 'react'
+import { Fragment, Suspense, useState } from 'react'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
+import MenuIcon from '@mui/icons-material/Menu'
 import Configuration, { NumResults } from './components/Configuration'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-function MainLayoutContent({ children }: { children: React.ReactNode }) {
+function MainLayoutContent({
+  children,
+  onSidebarToggle
+}: {
+  children: React.ReactNode
+  onSidebarToggle?: () => void
+}) {
   // Initialize with a function to avoid accessing window during SSR
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
   const [numResults, setNumResults] = useState<NumResults>(3)
@@ -50,7 +57,15 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
         }}
       >
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', p: 2 }}>
-          <Box sx={{ width: 48 }} />
+          {onSidebarToggle ? (
+            <Tooltip title="Conversations">
+              <IconButton color="inherit" aria-label="conversations" sx={{ color: 'white' }} onClick={onSidebarToggle}>
+                <MenuIcon />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Box sx={{ width: 48 }} />
+          )}
           <Image alt="" src={'/logo.png'} width={120} height={60} />
 
           <Tooltip title="Settings">
@@ -113,43 +128,16 @@ function MainLayoutContent({ children }: { children: React.ReactNode }) {
   )
 }
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
-  const router = useRouter()
-  const isRootRoute = pathname === '/'
-
-  // Redirect to login page on root route
-  useEffect(() => {
-    if (isRootRoute) {
-      router.push('/login')
-    }
-  }, [isRootRoute, router])
-
-  // Show white screen with loader on root route
-  if (isRootRoute) {
-    return (
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'white',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999
-        }}
-      >
-        <CircularProgress size={50} />
-      </Box>
-    )
-  }
-
+export default function MainLayout({
+  children,
+  onSidebarToggle
+}: {
+  children: React.ReactNode
+  onSidebarToggle?: () => void
+}) {
   return (
     <Suspense fallback={<CircularProgress size={50} />}>
-      <MainLayoutContent>{children}</MainLayoutContent>
+      <MainLayoutContent onSidebarToggle={onSidebarToggle}>{children}</MainLayoutContent>
     </Suspense>
   )
 }

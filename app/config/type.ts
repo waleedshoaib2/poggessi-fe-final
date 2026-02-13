@@ -66,6 +66,7 @@ export interface TurnHistoryItem {
     selected_filters: AppliedFilter[];
     refinement_questions: RefinementQuestion[];
     created_at: string; // ISO Date string
+    parent_turn?: number;
     is_original: boolean;
 }
 export interface AppliedFilter {
@@ -80,4 +81,34 @@ export interface TurnCache {
     selectedFilters: AppliedFilter[]
     totalMatches?: number
     groupedMatches?: number
+    isHydrated?: boolean
+}
+
+export interface ConversationChat {
+    chat_id: string
+    query: string
+    query_type: 'text' | 'image' | string
+    source_filter: string
+    turn_index: number
+    created_at: string
+    role: string
+    match_count: number
+}
+
+export interface ConversationTurn {
+    chat_id: string
+    turn_index: number
+    query: string
+    query_type: 'text' | 'image' | string
+    source_filter: string
+    created_at: string
+    match_ids: string[]
+    match_scores: number[]
+    refinement_questions: RefinementQuestion[]
+    filters_applied: AppliedFilter[]
+    selected_filters: AppliedFilter[]
+    role: string
+    parent_turn: number
+    is_original: boolean
+    items?: ProductResult[]
 }

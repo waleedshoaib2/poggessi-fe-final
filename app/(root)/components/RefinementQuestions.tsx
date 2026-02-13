@@ -146,12 +146,12 @@ export default function RefinementQuestions({
                     },
 
                     '&.Mui-selected': {
-                      backgroundColor: '#0f1419',
+                      backgroundColor: 'primary.main',
                       color: '#fff',
                       borderColor: '#0f1419',
 
                       '&:hover': {
-                        backgroundColor: '#0f1419'
+                        backgroundColor: 'primary.main'
                       }
                     }
                   }
