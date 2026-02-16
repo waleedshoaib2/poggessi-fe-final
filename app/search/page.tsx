@@ -842,17 +842,23 @@ const SearchContent: React.FC = () => {
     setSelectedProduct(null)
   }
 
-  // Reusable input box — rendered once, always at the bottom
   const inputBox = (
-    <Box sx={{ position: 'relative', width: '100%', backgroundColor: '#ffffff', borderRadius: '20px' }}>
-      {/* Image preview floats ABOVE the bar, anchored to its bottom edge */}
+    <Box
+      sx={{
+        position: 'relative',
+        width: '100%',
+        backgroundColor: '#ffffff',
+        borderRadius: { xs: '14px', sm: '18px', md: '20px' }
+      }}
+    >
+      {/* Image preview — floats above the bar */}
       {selectedImage && (
         <Box
           sx={{
             position: 'relative',
             bottom: '100%',
             left: 0,
-            mb: 1.5,
+            mb: { xs: 1, sm: 1.5 },
             zIndex: 10,
             backgroundColor: '#ffffff'
           }}
@@ -860,8 +866,8 @@ const SearchContent: React.FC = () => {
           <Box
             sx={{
               position: 'relative',
-              width: 110,
-              height: 110,
+              width: { xs: 80, sm: 100, md: 110 },
+              height: { xs: 80, sm: 90, md: 100 },
               borderRadius: 3,
               overflow: 'hidden',
               boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
@@ -872,7 +878,12 @@ const SearchContent: React.FC = () => {
               component="img"
               src={selectedImage}
               alt="Preview"
-              sx={{ width: '100%', height: '100%', objectFit: 'cover', backgroundColor: '#ffffff' }}
+              sx={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                backgroundColor: '#ffffff'
+              }}
             />
             <IconButton
               size="small"
@@ -882,13 +893,13 @@ const SearchContent: React.FC = () => {
                 top: 4,
                 right: 4,
                 bgcolor: 'rgba(0,0,0,0.55)',
-                color: '#ffff',
-                width: 24,
-                height: 24,
+                color: '#ffffff',
+                width: { xs: 20, sm: 24 },
+                height: { xs: 20, sm: 24 },
                 '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' }
               }}
             >
-              <CloseIcon sx={{ fontSize: 14 }} />
+              <CloseIcon sx={{ fontSize: { xs: 11, sm: 14 } }} />
             </IconButton>
           </Box>
         </Box>
@@ -914,43 +925,58 @@ const SearchContent: React.FC = () => {
         sx={{
           '& .MuiOutlinedInput-root': {
             backgroundColor: '#ffffff',
-            borderRadius: '20px',
+            borderRadius: { xs: '14px', sm: '18px', md: '20px' },
             opacity: 1,
+            // Padding scales with screen size so icons never crowd the text
             paddingRight: '4px',
+            paddingTop: { xs: '4px', sm: '6px', md: '8px' },
+            paddingBottom: { xs: '4px', sm: '6px', md: '8px' },
             '& fieldset': { border: 'none' },
             '&:hover fieldset': { border: 'none' },
             '&.Mui-focused fieldset': { border: 'none' }
           },
           '& .MuiOutlinedInput-input': {
-            padding: '8px 0px',
-            fontSize: '15px',
+            // clamp() ensures fluid scaling between xs and xl screens / zoom levels
+            fontSize: 'clamp(13px, 1.5vw, 16px)',
+            padding: { xs: '4px 0', sm: '6px 0', md: '8px 0' },
             color: '#333',
             '&::placeholder': { color: '#999', opacity: 1 }
           }
         }}
         InputProps={{
           startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon sx={{ color: '#666' }} />
+            <InputAdornment position="start" sx={{ mr: { xs: 0.5, sm: 1 } }}>
+              <SearchIcon
+                sx={{
+                  color: '#666',
+                  // Icon scales fluidly with viewport width
+                  fontSize: 'clamp(18px, 2vw, 24px)'
+                }}
+              />
             </InputAdornment>
           ),
           endAdornment: (
             <InputAdornment position="end">
-              <Box sx={{ display: 'flex', gap: 0.5 }}>
+              <Box sx={{ display: 'flex', gap: { xs: 0.25, sm: 0.5 }, alignItems: 'center' }}>
                 <IconButton
                   onClick={triggerFileSelect}
                   disabled={isLoading || isFiltering}
                   sx={{
                     backgroundColor: '#5b8ec4',
                     color: '#ffffff',
-                    width: '40px',
-                    height: '40px',
-                    mr: 1,
-                    '&:hover': { backgroundColor: '#4a7ab0' }
+                    // Button size scales fluidly — clamp prevents it from becoming
+                    // too small on mobile or too large at high zoom levels
+                    width: { xs: '32px', sm: '36px', md: '40px' },
+                    height: { xs: '32px', sm: '36px', md: '40px' },
+                    mr: { xs: 0.5, sm: 1 },
+                    flexShrink: 0,
+                    '&:hover': { backgroundColor: '#4a7ab0' },
+                    '&.Mui-disabled': { backgroundColor: '#b0c8e0', color: '#fff' }
                   }}
                 >
-                  <CameraAltIcon sx={{ fontSize: '20px' }} />
+                  <CameraAltIcon sx={{ fontSize: { xs: '16px', sm: '18px', md: '20px' } }} />
                 </IconButton>
+
                 {(inputValue.trim() || selectedImage) && (
                   <IconButton
                     onClick={handleSendMessage}
@@ -958,13 +984,15 @@ const SearchContent: React.FC = () => {
                     sx={{
                       backgroundColor: '#5b8ec4',
                       color: '#ffffff',
-                      width: '40px',
-                      mr: 1,
-                      height: '40px',
-                      '&:hover': { backgroundColor: '#4a7ab0' }
+                      width: { xs: '32px', sm: '36px', md: '40px' },
+                      height: { xs: '32px', sm: '36px', md: '40px' },
+                      mr: { xs: 0.5, sm: 1 },
+                      flexShrink: 0,
+                      '&:hover': { backgroundColor: '#4a7ab0' },
+                      '&.Mui-disabled': { backgroundColor: '#b0c8e0', color: '#fff' }
                     }}
                   >
-                    <SendIcon sx={{ fontSize: '20px' }} />
+                    <SendIcon sx={{ fontSize: { xs: '16px', sm: '18px', md: '20px' } }} />
                   </IconButton>
                 )}
               </Box>
@@ -977,7 +1005,6 @@ const SearchContent: React.FC = () => {
 
   return (
     <MainLayout onSidebarToggle={handleHeaderSidebarToggle}>
-      {/* Loading overlay */}
       {(isLoading || isFiltering || isTurnsLoading) && (
         <Box
           sx={{
@@ -1087,23 +1114,17 @@ const SearchContent: React.FC = () => {
         </Box>
       </Drawer>
 
-      {/*
-        Main layout: flex column filling the available height from MainLayout.
-        - Messages area: flex: 1, overflowY: auto — scrolls independently
-        - Input bar: flexShrink: 0 — always visible at the bottom
-      */}
       <Box
         sx={{
           display: 'flex',
           flexDirection: 'column',
           width: '100%',
-          height: '100%', // fill whatever height MainLayout provides
+          height: '100%',
+          minHeight: '85vh',
           alignItems: 'center',
-          overflow: 'hidden' // prevent the outer box from scrolling
+          overflow: 'hidden'
         }}
       >
-        {/* Scrollable messages area */}
-        {/* Scrollable messages area — only visible when there are messages */}
         <Box
           sx={{
             flex: 1,

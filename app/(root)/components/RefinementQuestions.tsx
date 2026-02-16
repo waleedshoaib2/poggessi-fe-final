@@ -42,13 +42,15 @@ export default function RefinementQuestions({
     return JSON.stringify(current) !== JSON.stringify(draftAnswers)
   }, [draftAnswers, selectedAnswers])
 
-  if (!questions || questions.length === 0) return null
+  if (!questions || questions.length === 0 || groupedMatches === 1) return null
   const resultLabel =
     typeof groupedMatches === 'number' && typeof totalMatches === 'number'
       ? `Showing ${groupedMatches} results`
       : typeof totalMatches === 'number'
         ? `Showing ${totalMatches} results`
         : null
+
+  console.log('results ', groupedMatches)
 
   return (
     <Paper
