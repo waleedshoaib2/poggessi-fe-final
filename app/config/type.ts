@@ -61,6 +61,8 @@ export interface SelectedFilter {
 export interface TurnHistoryItem {
     turn_index: number;
     role: 'search' | 'filter' | string; // Use string union if roles are limited
+    query_image_ref?: string;
+    query_image_url?: string;
     match_count: number;
     filters_applied: AppliedFilter[];
     selected_filters: AppliedFilter[];
@@ -100,6 +102,8 @@ export interface ConversationTurn {
     turn_index: number
     query: string
     query_type: 'text' | 'image' | string
+    query_image_ref?: string
+    query_image_url?: string
     source_filter: string
     created_at: string
     match_ids: string[]

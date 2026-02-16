@@ -8,6 +8,7 @@ interface TurnProps {
   onTurnClick: (turnIndex: number) => void
   disabled?: boolean
   formatAppliedFilters?: (filters: AppliedFilter[]) => string
+  currentQueryImageUrl?: string
 }
 
 export default function Turn({
@@ -15,7 +16,8 @@ export default function Turn({
   currentTurn,
   onTurnClick,
   disabled = false,
-  formatAppliedFilters
+  formatAppliedFilters,
+  currentQueryImageUrl
 }: TurnProps) {
   if (!turn_history || turn_history.length === 0) return null
 
@@ -27,6 +29,8 @@ export default function Turn({
 
   const formatter = formatAppliedFilters || defaultFormatAppliedFilters
   const sortedTurns = [...turn_history].sort((a, b) => a.turn_index - b.turn_index)
+  const current = sortedTurns.find((turn) => turn.turn_index === currentTurn)
+  const inputImage = current?.query_image_url ?? currentQueryImageUrl
   const formatCreatedAt = (value?: string) => {
     if (!value) return 'Unknown time'
     const date = new Date(value)
@@ -48,6 +52,19 @@ export default function Turn({
       <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
         Timeline
       </Typography>
+      {inputImage ? (
+        <Box sx={{ mb: 1.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+            Current query context
+          </Typography>
+          <img
+            src={inputImage}
+            alt="Query image"
+            className="query-image"
+            style={{ width: 84, height: 84, objectFit: 'cover', borderRadius: 8, display: 'block' }}
+          />
+        </Box>
+      ) : null}
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
         {sortedTurns.map((turn) => {
           const isActive = turn.turn_index === currentTurn
@@ -74,6 +91,14 @@ export default function Turn({
               <Typography variant="caption" sx={{ display: 'block', fontWeight: 600 }}>
                 Turn {turn.turn_index}
               </Typography>
+              {turn.query_image_url ? (
+                <img
+                  src={turn.query_image_url}
+                  alt="Query image"
+                  className="query-image"
+                  style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 6, marginTop: 6, marginBottom: 6 }}
+                />
+              ) : null}
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                 {turn.match_count} {turn.match_count === 1 ? 'result' : 'results'}
               </Typography>

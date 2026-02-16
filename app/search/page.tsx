@@ -179,6 +179,8 @@ const SearchContent: React.FC = () => {
     return turns.map((turn) => ({
       turn_index: turn.turn_index,
       role: turn.role,
+      query_image_ref: turn.query_image_ref,
+      query_image_url: turn.query_image_url,
       match_count: turn.match_ids?.length ?? turn.items?.length ?? 0,
       filters_applied: turn.filters_applied ?? [],
       selected_filters: turn.selected_filters ?? [],
@@ -424,7 +426,7 @@ const SearchContent: React.FC = () => {
     setActiveChatId(chatId)
     setFilterError(null)
     try {
-      const data = await fetchTurns(chatId)
+      const data = await fetchTurns(chatId, true)
       const turnHistory = toTurnHistory(data.turns)
       const newestTurn = turnHistory.length > 0 ? turnHistory[0] : undefined
       const nextTurnCache: Record<number, TurnCache> = {}
@@ -1198,6 +1200,10 @@ const SearchContent: React.FC = () => {
                         onTurnClick={(turnIndex) => void switchToTurn(message.id, turnIndex)}
                         disabled={message.id !== activeBotMessageId || isFiltering}
                         formatAppliedFilters={formatAppliedFilters}
+                        currentQueryImageUrl={
+                          message.turnHistory?.find((turn) => turn.turn_index === message.currentTurn)?.query_image_url ??
+                          message.originalQuery?.image
+                        }
                       />
                     )}
                     {message.type === 'bot' &&
