@@ -74,14 +74,9 @@ function MainLayoutContent({ children, onSidebarToggle }: { children: React.Reac
         open={open}
         anchorEl={anchorEl}
         onClose={handleClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right'
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right'
-        }}
+        disableScrollLock
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         transitionDuration={0}
         sx={{
           '& .MuiPopover-paper': {

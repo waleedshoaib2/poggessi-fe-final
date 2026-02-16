@@ -6,6 +6,7 @@ import typography from "./typography";
 export const themeLight = createTheme({
   components,
   typography,
+
   palette: {
     ...palette,
     mode: "light",
