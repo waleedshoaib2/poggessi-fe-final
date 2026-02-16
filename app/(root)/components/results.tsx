@@ -108,12 +108,16 @@ const renderSearchResults = (
 
           return (
             <Grid
+              key={result.id}
               size={{
                 xs: 12,
-                sm: 6,
-                md: 6
+                sm: results.length === 1 ? 12 : 6,
+                md: results.length === 1 ? 12 : 6
               }}
-              key={result.id}
+              sx={{
+                display: 'flex',
+                justifyContent: results.length === 1 ? 'center' : 'flex-start'
+              }}
             >
               {' '}
               <Card
