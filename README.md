@@ -13,13 +13,14 @@ Run locally or on EC2:
 ```bash
 docker run -d \
   --name pogessi-usa-frontend \
+  --network poggessi-net \
   --restart unless-stopped \
-  -p 3000:3000 \
+  -p 8080:8080 \
   --env-file .env \
   pogessi-usa-frontend:latest
 ```
 
-The app will be available on port `3000`.
+The app will be available on port `8080`.
 
 ## EC2 quick setup
 

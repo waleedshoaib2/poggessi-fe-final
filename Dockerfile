@@ -13,7 +13,7 @@ RUN npm run build
 
 FROM base AS runner
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=8080
 
 RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
 
