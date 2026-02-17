@@ -879,16 +879,17 @@ const SearchContent: React.FC = () => {
         borderRadius: 'clamp(12px,1.2vw,18px)'
       }}
     >
+      {' '}
       {/* Image preview */}
       {selectedImage && (
         <Box
           sx={{
             position: 'relative',
             bottom: '100%',
-            left: 0,
-            mb: 1.5,
-            zIndex: 10,
-            backgroundColor: '#ffffff'
+            left: 8,
+            mb: 1,
+            zIndex: 20,
+            pointerEvents: 'auto'
           }}
         >
           <Box
@@ -898,8 +899,10 @@ const SearchContent: React.FC = () => {
               height: 'clamp(70px,7vw,100px)',
               borderRadius: 3,
               overflow: 'hidden',
-              boxShadow: '0 4px 18px rgba(0,0,0,0.25)',
-              border: '2px solid rgba(255,255,255,0.4)'
+              boxShadow: '0 6px 22px rgba(0,0,0,0.25)',
+              border: '2px solid rgba(255,255,255,0.7)',
+              backdropFilter: 'blur(4px)',
+              backgroundColor: '#fff'
             }}
           >
             <Box
@@ -909,8 +912,7 @@ const SearchContent: React.FC = () => {
               sx={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'cover',
-                backgroundColor: '#ffffff'
+                objectFit: 'cover'
               }}
             />
 
@@ -925,7 +927,7 @@ const SearchContent: React.FC = () => {
                 color: '#ffffff',
                 width: 'clamp(18px,1.6vw,24px)',
                 height: 'clamp(18px,1.6vw,24px)',
-                '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' }
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.85)' }
               }}
             >
               <CloseIcon sx={{ fontSize: 'clamp(10px,1vw,14px)' }} />
@@ -933,7 +935,6 @@ const SearchContent: React.FC = () => {
           </Box>
         </Box>
       )}
-
       {/* Hidden file input */}
       <input
         type="file"
@@ -943,7 +944,6 @@ const SearchContent: React.FC = () => {
         onChange={handleFileSelect}
         onClick={(e) => ((e.target as HTMLInputElement).value = '')}
       />
-
       <TextField
         fullWidth
         placeholder="Search here.."
@@ -959,22 +959,28 @@ const SearchContent: React.FC = () => {
             minHeight: 'clamp(38px,3vw,52px)',
             display: 'flex',
             alignItems: 'center',
-
-            padding: 0,
-            margin: 0,
+            p: 0,
+            m: 0,
 
             '& fieldset': { border: 'none' },
             '&:hover fieldset': { border: 'none' },
             '&.Mui-focused fieldset': { border: 'none' }
           },
 
-          /* removes multiline wrapper spacing */
+          '& .MuiInputBase-root': {
+            p: 0,
+            m: 0
+          },
+
+          '& .MuiInputAdornment-root': {
+            margin: 0
+          },
+
           '& .MuiInputBase-inputMultiline': {
             padding: 0,
             margin: 0
           },
 
-          /* removes actual input spacing */
           '& .MuiOutlinedInput-input': {
             padding: 0,
             margin: 0,
@@ -1307,20 +1313,20 @@ const SearchContent: React.FC = () => {
           bottom: 0,
           left: 0,
           right: 0,
+          padding: 0,
           zIndex: 100,
           display: 'flex',
           justifyContent: 'center',
           px: { xs: 2, sm: 3 },
-          pb: 3,
-          pt: 2
+          pb: 3
         }}
       >
         <Box
           sx={{
             width: '100%',
             maxWidth: '900px',
+            padding: 1,
             px: 2,
-            py: 1.5,
             borderRadius: '50px',
             backgroundColor: '#ffffff',
             border: '1px solid rgba(255, 255, 255, 0.60)',
