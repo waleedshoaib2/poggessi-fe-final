@@ -13,7 +13,6 @@ import {
   Button
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-import CameraAltIcon from '@mui/icons-material/CameraAlt'
 import SendIcon from '@mui/icons-material/Send'
 import CloseIcon from '@mui/icons-material/Close'
 import SmartToyIcon from '@mui/icons-material/SmartToy'
@@ -34,6 +33,8 @@ import {
   ConversationChat,
   ConversationTurn
 } from '../config/type'
+import { UploadFile } from '@mui/icons-material'
+import ImageIcon from '@mui/icons-material/Image'
 
 interface SearchResponse {
   status: string
@@ -490,6 +491,7 @@ const SearchContent: React.FC = () => {
         </Typography>
       )
     }
+
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         {chats.map((chat) => (
@@ -507,9 +509,33 @@ const SearchContent: React.FC = () => {
               backgroundColor: activeChatId === chat.chat_id ? 'rgba(197,224,255,0.22)' : 'rgba(186,214,248,0.12)'
             }}
           >
-            <Typography variant="body2" sx={{ fontWeight: 600, color: '#f3f8ff' }} noWrap>
-              {chat.query || '(no query text)'}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {!chat.query && chat.query_type === 'image' && (
+                <ImageIcon
+                  sx={{
+                    fontSize: 18,
+                    opacity: 0.8,
+                    color: chat.query ? '#ffffff' : chat.query_type === 'image' ? '#000000' : '#ffffff'
+                  }}
+                />
+              )}
+
+              <Typography
+                noWrap
+                fontSize={14}
+                fontWeight={600}
+                sx={{
+                  color: chat.query
+                    ? '#ffffff' // text query → white
+                    : chat.query_type === 'image'
+                      ? '#000000' // image query → black
+                      : '#ffffff' // fallback
+                }}
+              >
+                {chat.query || (chat.query_type === 'image' ? 'Image Search' : 'New Chat')}
+              </Typography>
+            </Box>
+
             <Typography variant="caption" sx={{ display: 'block', color: 'rgba(231,242,255,0.92)' }}>
               Turn {chat.turn_index} • {chat.match_count} items
             </Typography>
@@ -844,10 +870,16 @@ const SearchContent: React.FC = () => {
     setSelectedProduct(null)
   }
 
-  // Reusable input box — rendered once, always at the bottom
   const inputBox = (
-    <Box sx={{ position: 'relative', width: '100%', backgroundColor: '#ffffff', borderRadius: '20px' }}>
-      {/* Image preview floats ABOVE the bar, anchored to its bottom edge */}
+    <Box
+      sx={{
+        position: 'relative',
+        width: '100%',
+        backgroundColor: '#ffffff',
+        borderRadius: 'clamp(12px,1.2vw,18px)'
+      }}
+    >
+      {/* Image preview */}
       {selectedImage && (
         <Box
           sx={{
@@ -862,11 +894,11 @@ const SearchContent: React.FC = () => {
           <Box
             sx={{
               position: 'relative',
-              width: 110,
-              height: 110,
+              width: 'clamp(70px,7vw,100px)',
+              height: 'clamp(70px,7vw,100px)',
               borderRadius: 3,
               overflow: 'hidden',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+              boxShadow: '0 4px 18px rgba(0,0,0,0.25)',
               border: '2px solid rgba(255,255,255,0.4)'
             }}
           >
@@ -874,8 +906,14 @@ const SearchContent: React.FC = () => {
               component="img"
               src={selectedImage}
               alt="Preview"
-              sx={{ width: '100%', height: '100%', objectFit: 'cover', backgroundColor: '#ffffff' }}
+              sx={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                backgroundColor: '#ffffff'
+              }}
             />
+
             <IconButton
               size="small"
               onClick={clearSelectedImage}
@@ -884,18 +922,19 @@ const SearchContent: React.FC = () => {
                 top: 4,
                 right: 4,
                 bgcolor: 'rgba(0,0,0,0.55)',
-                color: '#ffff',
-                width: 24,
-                height: 24,
+                color: '#ffffff',
+                width: 'clamp(18px,1.6vw,24px)',
+                height: 'clamp(18px,1.6vw,24px)',
                 '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' }
               }}
             >
-              <CloseIcon sx={{ fontSize: 14 }} />
+              <CloseIcon sx={{ fontSize: 'clamp(10px,1vw,14px)' }} />
             </IconButton>
           </Box>
         </Box>
       )}
 
+      {/* Hidden file input */}
       <input
         type="file"
         hidden
@@ -916,43 +955,73 @@ const SearchContent: React.FC = () => {
         sx={{
           '& .MuiOutlinedInput-root': {
             backgroundColor: '#ffffff',
-            borderRadius: '20px',
-            opacity: 1,
-            paddingRight: '4px',
+            borderRadius: 'clamp(12px,1.2vw,18px)',
+            minHeight: 'clamp(38px,3vw,52px)',
+            display: 'flex',
+            alignItems: 'center',
+
+            padding: 0,
+            margin: 0,
+
             '& fieldset': { border: 'none' },
             '&:hover fieldset': { border: 'none' },
             '&.Mui-focused fieldset': { border: 'none' }
           },
+
+          /* removes multiline wrapper spacing */
+          '& .MuiInputBase-inputMultiline': {
+            padding: 0,
+            margin: 0
+          },
+
+          /* removes actual input spacing */
           '& .MuiOutlinedInput-input': {
-            padding: '8px 0px',
-            fontSize: '15px',
+            padding: 0,
+            margin: 0,
+            lineHeight: 1.2,
+            fontSize: 'clamp(13px,1.1vw,16px)',
             color: '#333',
-            '&::placeholder': { color: '#999', opacity: 1 }
+
+            '&::placeholder': {
+              color: '#999',
+              opacity: 1
+            }
           }
         }}
         InputProps={{
           startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon sx={{ color: '#666' }} />
+            <InputAdornment position="start" sx={{ mr: 1 }}>
+              <SearchIcon
+                sx={{
+                  color: '#666',
+                  fontSize: 'clamp(16px,2vw,22px)'
+                }}
+              />
             </InputAdornment>
           ),
+
           endAdornment: (
             <InputAdornment position="end">
-              <Box sx={{ display: 'flex', gap: 0.5 }}>
+              <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                {/* Camera */}
                 <IconButton
                   onClick={triggerFileSelect}
                   disabled={isLoading || isFiltering}
                   sx={{
                     backgroundColor: '#5b8ec4',
                     color: '#ffffff',
-                    width: '40px',
-                    height: '40px',
+                    width: 'clamp(30px,2.4vw,40px)',
+                    height: 'clamp(30px,2.4vw,40px)',
                     mr: 1,
-                    '&:hover': { backgroundColor: '#4a7ab0' }
+                    flexShrink: 0,
+                    '&:hover': { backgroundColor: '#4a7ab0' },
+                    '&.Mui-disabled': { backgroundColor: '#b0c8e0', color: '#fff' }
                   }}
                 >
-                  <CameraAltIcon sx={{ fontSize: '20px' }} />
+                  <UploadFile sx={{ fontSize: 'clamp(15px,1.3vw,20px)' }} />
                 </IconButton>
+
+                {/* Send */}
                 {(inputValue.trim() || selectedImage) && (
                   <IconButton
                     onClick={handleSendMessage}
@@ -960,13 +1029,15 @@ const SearchContent: React.FC = () => {
                     sx={{
                       backgroundColor: '#5b8ec4',
                       color: '#ffffff',
-                      width: '40px',
+                      width: 'clamp(30px,2.4vw,40px)',
+                      height: 'clamp(30px,2.4vw,40px)',
                       mr: 1,
-                      height: '40px',
-                      '&:hover': { backgroundColor: '#4a7ab0' }
+                      flexShrink: 0,
+                      '&:hover': { backgroundColor: '#4a7ab0' },
+                      '&.Mui-disabled': { backgroundColor: '#b0c8e0', color: '#fff' }
                     }}
                   >
-                    <SendIcon sx={{ fontSize: '20px' }} />
+                    <SendIcon sx={{ fontSize: 'clamp(15px,1.3vw,20px)' }} />
                   </IconButton>
                 )}
               </Box>
@@ -979,7 +1050,6 @@ const SearchContent: React.FC = () => {
 
   return (
     <MainLayout onSidebarToggle={handleHeaderSidebarToggle}>
-      {/* Loading overlay */}
       {(isLoading || isFiltering || isTurnsLoading) && (
         <Box
           sx={{
@@ -1089,23 +1159,17 @@ const SearchContent: React.FC = () => {
         </Box>
       </Drawer>
 
-      {/*
-        Main layout: flex column filling the available height from MainLayout.
-        - Messages area: flex: 1, overflowY: auto — scrolls independently
-        - Input bar: flexShrink: 0 — always visible at the bottom
-      */}
       <Box
         sx={{
           display: 'flex',
           flexDirection: 'column',
           width: '100%',
-          height: '100%', // fill whatever height MainLayout provides
+          height: '100%',
+          minHeight: '85vh',
           alignItems: 'center',
-          overflow: 'hidden' // prevent the outer box from scrolling
+          overflow: 'hidden'
         }}
       >
-        {/* Scrollable messages area */}
-        {/* Scrollable messages area — only visible when there are messages */}
         <Box
           sx={{
             flex: 1,
@@ -1125,13 +1189,7 @@ const SearchContent: React.FC = () => {
             marginBottom: '110px',
             backgroundColor: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            '&::-webkit-scrollbar': { width: '8px' },
-            '&::-webkit-scrollbar-track': { background: 'transparent' },
-            '&::-webkit-scrollbar-thumb': {
-              background: 'rgba(255,255,255,0.2)',
-              borderRadius: '4px'
-            }
+            border: '1px solid rgba(255, 255, 255, 0.2)'
           }}
         >
           {messages.map((message) => (

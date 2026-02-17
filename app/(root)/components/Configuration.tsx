@@ -45,7 +45,6 @@ const Configuration = ({ numResults, setNumResults, confidence, setConfidence }:
   const handleConfidenceChange = (_: Event, newValue: number | number[]) => {
     setConfidence(newValue as number)
   }
-
   return (
     <Paper
       elevation={3}

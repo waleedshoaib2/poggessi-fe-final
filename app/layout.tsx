@@ -27,14 +27,50 @@ export default function RootLayout({
         <ThemeContextProvider>
           <CssBaseline />
           <GlobalStyles
-            styles={{
-              html: { scrollbarWidth: 'none' },
-              body: { scrollbarWidth: 'none' },
-              'html::-webkit-scrollbar, body::-webkit-scrollbar': {
-                display: 'none'
-              }
-            }}
+            styles={`
+    /* Firefox */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #6b7280 #f5f6f7;
+    }
+
+    /* Chrome / Edge / Safari */
+    *::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+
+    /* Track (very light gray) */
+    *::-webkit-scrollbar-track {
+      background: #f5f6f7;
+    }
+
+    /* Thumb */
+    *::-webkit-scrollbar-thumb {
+      background: #6b7280;
+      border-radius: 10px;
+      border: 2px solid #f5f6f7; /* creates floating effect */
+    }
+
+    /* Hover thumb */
+    *::-webkit-scrollbar-thumb:hover {
+      background: #4b5563;
+    }
+
+    /* Remove arrows */
+    *::-webkit-scrollbar-button {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+
+    /* Remove corner */
+    *::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+  `}
           />
+
           {children}
         </ThemeContextProvider>
       </body>
