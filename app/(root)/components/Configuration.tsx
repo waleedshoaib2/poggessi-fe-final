@@ -226,6 +226,7 @@ const Configuration = ({ numResults, setNumResults, confidence, setConfidence }:
             <MenuItem value="All Sources">All Sources</MenuItem>
             <MenuItem value="Catalog Items">Catalog Items</MenuItem>
             <MenuItem value="Customized Quoted">Customized Quoted</MenuItem>
+            <MenuItem value="Custom Built">Custom Built</MenuItem>
           </Select>
         </FormControl>
       </Box>
