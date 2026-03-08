@@ -1,22 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getSessionUserFromRequest } from '@/app/lib/auth'
 
 const backendBaseUrl =
   process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://3.226.57.130:8000'
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getSessionUserFromRequest(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const upstreamUrl = new URL('/api/search/filter', backendBaseUrl)
     upstreamUrl.search = request.nextUrl.search
+    upstreamUrl.searchParams.set('user_id', user.id)
 
+    const incomingContentType = request.headers.get('content-type')
     const incomingApiKey = request.headers.get('x-api-key')
     const apiKey = process.env.API_KEY || process.env.NEXT_PUBLIC_API_KEY || incomingApiKey
+
+    const bodyBuffer = await request.arrayBuffer()
+    const hasBody = bodyBuffer.byteLength > 0
 
     const upstreamResponse = await fetch(upstreamUrl, {
       method: 'POST',
       headers: {
+        ...(incomingContentType ? { 'content-type': incomingContentType } : {}),
         accept: 'application/json',
         ...(apiKey ? { 'x-api-key': apiKey } : {})
-      }
+      },
+      body: hasBody ? bodyBuffer : undefined
     })
 
     const responseBody = await upstreamResponse.arrayBuffer()

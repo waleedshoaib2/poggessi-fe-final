@@ -1,6 +1,6 @@
 'use client'
 
-import { AppBar, Box, Toolbar, IconButton, Popover, Tooltip, CircularProgress } from '@mui/material'
+import { AppBar, Box, Toolbar, IconButton, Popover, Tooltip, CircularProgress, Stack } from '@mui/material'
 import { MAIN_GRADIENT } from '../libs/mui/theme/palette'
 import Image from 'next/image'
 import { Fragment, Suspense, useState } from 'react'
@@ -8,6 +8,8 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import MenuIcon from '@mui/icons-material/Menu'
 import Configuration, { NumResults } from './components/Configuration'
 import { useRouter, useSearchParams } from 'next/navigation'
+import GroupAddOutlinedIcon from '@mui/icons-material/GroupAddOutlined'
+import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 
 function MainLayoutContent({ children, onSidebarToggle }: { children: React.ReactNode; onSidebarToggle?: () => void }) {
   // Initialize with a function to avoid accessing window during SSR
@@ -41,6 +43,11 @@ function MainLayoutContent({ children, onSidebarToggle }: { children: React.Reac
     router.push(`?${params.toString()}`, { scroll: false })
   }
 
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    router.push('/login')
+  }
+
   return (
     <Fragment>
       <AppBar
@@ -62,11 +69,23 @@ function MainLayoutContent({ children, onSidebarToggle }: { children: React.Reac
           )}
           <Image alt="" src={'/logo.png'} width={120} height={60} />
 
-          <Tooltip title="Settings">
-            <IconButton color="inherit" aria-label="settings" sx={{ color: 'white' }} onClick={handleSettingsClick}>
-              <SettingsOutlinedIcon />
-            </IconButton>
-          </Tooltip>
+          <Stack direction="row" spacing={1}>
+            <Tooltip title="Team">
+              <IconButton color="inherit" aria-label="team" sx={{ color: 'white' }} onClick={() => router.push('/team')}>
+                <GroupAddOutlinedIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Settings">
+              <IconButton color="inherit" aria-label="settings" sx={{ color: 'white' }} onClick={handleSettingsClick}>
+                <SettingsOutlinedIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Logout">
+              <IconButton color="inherit" aria-label="logout" sx={{ color: 'white' }} onClick={handleLogout}>
+                <LogoutOutlinedIcon />
+              </IconButton>
+            </Tooltip>
+          </Stack>
         </Toolbar>
       </AppBar>
 

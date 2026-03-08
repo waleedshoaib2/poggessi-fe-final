@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Button, IconButton, InputAdornment, Stack, TextField, Typography } from '@mui/material'
+import { Alert, Box, Button, IconButton, InputAdornment, Link, Stack, TextField, Typography } from '@mui/material'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import LoginLayout from '../(root)/login-layout'
@@ -8,13 +8,10 @@ import { EmailOutlined, LockOutlined, Visibility, VisibilityOff } from '@mui/ico
 
 const commonInputStyles = {
   backgroundColor: 'white',
-  // color: 'red', // Remove this as it's not the correct way to target the input
   borderRadius: '8px',
   overflow: 'hidden',
   '& .MuiOutlinedInput-root': {
-    // This removes the background from the container itself
     backgroundColor: 'white',
-    // Target the input element for text color
     '& input': {
       color: 'primary.main'
     },
@@ -30,18 +27,15 @@ const commonInputStyles = {
     },
     '& input:-webkit-autofill': {
       WebkitBoxShadow: '0 0 0 1000px white inset !important',
-      WebkitTextFillColor: 'primary.main !important' // Ensure autofill text is also red
+      WebkitTextFillColor: 'primary.main !important'
     },
-    // This targets the specific area around the icon
     '& .MuiInputAdornment-root': {
       backgroundColor: 'white !important',
       color: 'primary.main !important',
-      marginRight: '10px !important' // Added space between icon and text
+      marginRight: '10px !important'
     }
   }
 }
-
-// In your TextField, make sure to REMOVE the sx from InputAdornment
 
 export default function LoginPage() {
   const router = useRouter()
@@ -49,12 +43,35 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  const handleLogin = () => {
-    if (email && password) {
+  const handleLogin = async () => {
+    setError(null)
+    if (!email || !password) {
+      setError('Email and password are required')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        setError(data.error || 'Login failed')
+        return
+      }
+
       router.push('/search')
-    } else {
-      alert('Invalid Credentials')
+    } catch {
+      setError('Login failed. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -62,10 +79,7 @@ export default function LoginPage() {
     <LoginLayout>
       <Box
         sx={{
-          // minWidth: 526,
           minWidth: { xs: '80%', sm: '60%', md: '30%' },
-          // mx: { xs: 12 },
-
           p: 4,
           borderRadius: '20px',
           boxShadow: 3,
@@ -78,23 +92,23 @@ export default function LoginPage() {
             Welcome Back
           </Typography>
           <Typography variant="subtitle1" fontWeight={600} color="white" mb={3}>
-            Let&apos;s Sign in you account
+            Sign in to access Pogessi
           </Typography>
         </Stack>
 
-        {/* Email Field */}
+        {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
+
         <Box sx={{ mb: 2 }}>
           <Typography variant="caption" sx={{ mb: 1, display: 'block', color: 'white' }}>
             Email Address
           </Typography>
           <TextField
             fullWidth
-            placeholder="test@soal.com"
+            placeholder="admin@pogessi.local"
             onChange={(e) => setEmail(e.target.value)}
             slotProps={{
               input: {
                 startAdornment: (
-                  // REMOVED sx from here so it can inherit the transparent style
                   <InputAdornment position="start">
                     <EmailOutlined color="primary" />
                   </InputAdornment>
@@ -105,7 +119,6 @@ export default function LoginPage() {
           />
         </Box>
 
-        {/* Password Field */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="caption" sx={{ mb: 1, display: 'block', color: 'white' }}>
             Password
@@ -135,9 +148,23 @@ export default function LoginPage() {
           />
         </Box>
 
-        <Button fullWidth variant="contained" sx={{ mt: 2, borderRadius: '12px', py: 1.5 }} onClick={handleLogin}>
-          Login
+        <Button
+          fullWidth
+          variant="contained"
+          sx={{ mt: 2, borderRadius: '12px', py: 1.5 }}
+          onClick={handleLogin}
+          disabled={loading}
+        >
+          {loading ? 'Signing in...' : 'Login'}
         </Button>
+
+        <Typography variant="caption" color="white" sx={{ display: 'block', mt: 2 }}>
+          Forgot your password?{' '}
+          <Link href="/reset-password" underline="always" color="inherit">
+            Reset it
+          </Link>
+        </Typography>
+
       </Box>
     </LoginLayout>
   )

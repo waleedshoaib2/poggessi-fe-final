@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getSessionUserFromRequest } from '@/app/lib/auth'
 
 const backendBaseUrl =
   process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://3.226.57.130:8000'
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getSessionUserFromRequest(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const upstreamUrl = new URL('/api/conversation/turns', backendBaseUrl)
     upstreamUrl.search = request.nextUrl.search
+    upstreamUrl.searchParams.set('user_id', user.id)
 
     const incomingApiKey = request.headers.get('x-api-key')
     const apiKey = process.env.API_KEY || process.env.NEXT_PUBLIC_API_KEY || incomingApiKey

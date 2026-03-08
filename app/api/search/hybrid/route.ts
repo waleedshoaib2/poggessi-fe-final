@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getSessionUserFromRequest } from '@/app/lib/auth'
 
 const backendBaseUrl =
   process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://3.226.57.130:8000'
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getSessionUserFromRequest(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const upstreamUrl = new URL('/api/search/hybrid', backendBaseUrl)
     upstreamUrl.search = request.nextUrl.search
+    upstreamUrl.searchParams.set('user_id', user.id)
 
     const incomingContentType = request.headers.get('content-type')
     const incomingApiKey = request.headers.get('x-api-key')

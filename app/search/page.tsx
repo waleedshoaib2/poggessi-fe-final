@@ -22,7 +22,7 @@ import ProductDetailsDialog from '../(root)/components/ProductDetailsDialog'
 import renderSearchResults from '../(root)/components/results'
 import RefinementQuestions from '../(root)/components/RefinementQuestions'
 import Turn from '../(root)/components/turn'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ROUTES } from '../config/api'
 import {
   ProductResult,
@@ -136,11 +136,13 @@ const SearchContent: React.FC = () => {
   const [isChatsLoading, setIsChatsLoading] = useState(false)
   const [isTurnsLoading, setIsTurnsLoading] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isAuthChecking, setIsAuthChecking] = useState(true)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const skipNextAutoScrollRef = useRef(false)
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   const topK = searchParams.get('top_k')
   const confT = searchParams.get('conf_t')
@@ -469,11 +471,36 @@ const SearchContent: React.FC = () => {
   }
 
   useEffect(() => {
-    void fetchChats()
-  }, [])
+    const verifySession = async () => {
+      try {
+        const response = await fetch('/api/auth/me')
+        if (!response.ok) {
+          router.replace('/login')
+          return
+        }
+        await fetchChats()
+      } catch {
+        router.replace('/login')
+      } finally {
+        setIsAuthChecking(false)
+      }
+    }
+
+    void verifySession()
+  }, [router])
 
   const handleHeaderSidebarToggle = () => {
     setIsSidebarOpen((prev) => !prev)
+  }
+
+  if (isAuthChecking) {
+    return (
+      <MainLayout>
+        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pt: 10 }}>
+          <CircularProgress />
+        </Box>
+      </MainLayout>
+    )
   }
 
   const renderConversationItems = (onSelect?: () => void) => {
