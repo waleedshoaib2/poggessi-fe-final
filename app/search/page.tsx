@@ -137,6 +137,7 @@ const SearchContent: React.FC = () => {
   const [isTurnsLoading, setIsTurnsLoading] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isAuthChecking, setIsAuthChecking] = useState(true)
+  const [userRole, setUserRole] = useState<'admin' | 'member' | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -478,6 +479,8 @@ const SearchContent: React.FC = () => {
           router.replace('/login')
           return
         }
+        const data = await response.json()
+        setUserRole(data?.user?.role === 'admin' ? 'admin' : 'member')
         await fetchChats()
       } catch {
         router.replace('/login')
@@ -495,7 +498,7 @@ const SearchContent: React.FC = () => {
 
   if (isAuthChecking) {
     return (
-      <MainLayout>
+      <MainLayout canManageTeam={false}>
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pt: 10 }}>
           <CircularProgress />
         </Box>
@@ -1082,7 +1085,7 @@ const SearchContent: React.FC = () => {
   )
 
   return (
-    <MainLayout onSidebarToggle={handleHeaderSidebarToggle}>
+    <MainLayout onSidebarToggle={handleHeaderSidebarToggle} canManageTeam={userRole === 'admin'}>
       {(isLoading || isFiltering || isTurnsLoading) && (
         <Box
           sx={{

@@ -166,7 +166,7 @@ export default function TeamPage() {
   }
 
   return (
-    <MainLayout>
+    <MainLayout canManageTeam>
       <Box sx={{ width: '100%', maxWidth: 1180 }}>
         <Paper
           sx={{

@@ -11,7 +11,15 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import GroupAddOutlinedIcon from '@mui/icons-material/GroupAddOutlined'
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined'
 
-function MainLayoutContent({ children, onSidebarToggle }: { children: React.ReactNode; onSidebarToggle?: () => void }) {
+function MainLayoutContent({
+  children,
+  onSidebarToggle,
+  canManageTeam = false
+}: {
+  children: React.ReactNode
+  onSidebarToggle?: () => void
+  canManageTeam?: boolean
+}) {
   // Initialize with a function to avoid accessing window during SSR
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
   const [numResults, setNumResults] = useState<NumResults>(3)
@@ -70,11 +78,13 @@ function MainLayoutContent({ children, onSidebarToggle }: { children: React.Reac
           <Image alt="" src={'/logo.png'} width={120} height={60} />
 
           <Stack direction="row" spacing={1}>
-            <Tooltip title="Team">
-              <IconButton color="inherit" aria-label="team" sx={{ color: 'white' }} onClick={() => router.push('/team')}>
-                <GroupAddOutlinedIcon />
-              </IconButton>
-            </Tooltip>
+            {canManageTeam ? (
+              <Tooltip title="Team">
+                <IconButton color="inherit" aria-label="team" sx={{ color: 'white' }} onClick={() => router.push('/team')}>
+                  <GroupAddOutlinedIcon />
+                </IconButton>
+              </Tooltip>
+            ) : null}
             <Tooltip title="Settings">
               <IconButton color="inherit" aria-label="settings" sx={{ color: 'white' }} onClick={handleSettingsClick}>
                 <SettingsOutlinedIcon />
@@ -138,14 +148,18 @@ function MainLayoutContent({ children, onSidebarToggle }: { children: React.Reac
 
 export default function MainLayout({
   children,
-  onSidebarToggle
+  onSidebarToggle,
+  canManageTeam = false
 }: {
   children: React.ReactNode
   onSidebarToggle?: () => void
+  canManageTeam?: boolean
 }) {
   return (
     <Suspense fallback={<CircularProgress size={50} />}>
-      <MainLayoutContent onSidebarToggle={onSidebarToggle}>{children}</MainLayoutContent>
+      <MainLayoutContent onSidebarToggle={onSidebarToggle} canManageTeam={canManageTeam}>
+        {children}
+      </MainLayoutContent>
     </Suspense>
   )
 }
