@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 
 export type UserRole = 'admin' | 'member'
 export type CreateInviteResult = {
@@ -14,6 +15,13 @@ const backendBaseUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL ||
 export const SESSION_COOKIE = 'auth_session'
 
 type SessionUser = { id: string; email: string; role: UserRole }
+type JwtPayload = {
+  sub: string
+  email: string
+  role: UserRole
+  iat: number
+  exp: number
+}
 
 function getErrorMessage(data: Record<string, unknown> | null, fallback: string) {
   const error = data?.error
@@ -25,6 +33,56 @@ function requireData(data: Record<string, unknown> | null, fallback: string) {
     throw new Error(fallback)
   }
   return data
+}
+
+function getJwtSecret() {
+  return process.env.AUTH_JWT_SECRET || 'dev-insecure-jwt-secret-change-me'
+}
+
+function base64UrlDecode(value: string) {
+  const normalized = value.replace(/-/g, '+').replace(/_/g, '/')
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')
+  return Buffer.from(padded, 'base64')
+}
+
+function verifySessionToken(token: string): SessionUser | null {
+  const parts = token.split('.')
+  if (parts.length !== 3) return null
+
+  const [headerPart, payloadPart, signaturePart] = parts
+  const signingInput = `${headerPart}.${payloadPart}`
+  const expectedSignature = createHmac('sha256', getJwtSecret()).update(signingInput).digest()
+  const actualSignature = base64UrlDecode(signaturePart)
+
+  if (
+    actualSignature.length !== expectedSignature.length ||
+    !timingSafeEqual(actualSignature, expectedSignature)
+  ) {
+    return null
+  }
+
+  try {
+    const header = JSON.parse(base64UrlDecode(headerPart).toString('utf8')) as {
+      alg?: string
+      typ?: string
+    }
+    const payload = JSON.parse(base64UrlDecode(payloadPart).toString('utf8')) as Partial<JwtPayload>
+
+    if (header.alg !== 'HS256' || header.typ !== 'JWT') return null
+    if (
+      typeof payload.sub !== 'string' ||
+      typeof payload.email !== 'string' ||
+      (payload.role !== 'admin' && payload.role !== 'member') ||
+      typeof payload.exp !== 'number'
+    ) {
+      return null
+    }
+    if (payload.exp <= Math.floor(Date.now() / 1000)) return null
+
+    return { id: payload.sub, email: payload.email, role: payload.role }
+  } catch {
+    return null
+  }
 }
 
 async function backendFetch(path: string, options: RequestInit = {}) {
@@ -58,21 +116,13 @@ export async function login(email: string, password: string) {
 }
 
 export async function logout(token: string) {
-  await backendFetch('/api/auth/logout', {
-    method: 'POST',
-    headers: { 'x-session-token': token }
-  })
+  if (!token) return
+  await backendFetch('/api/auth/logout', { method: 'POST' })
 }
 
 export async function getSessionUser(token: string | undefined) {
   if (!token) return null
-  const { response, data } = await backendFetch('/api/auth/me', {
-    method: 'GET',
-    headers: { 'x-session-token': token }
-  })
-  if (!response.ok) return null
-  const payload = requireData(data, 'Unauthorized')
-  return payload.user as SessionUser
+  return verifySessionToken(token)
 }
 
 export async function getSessionUserFromRequest(request: NextRequest) {
