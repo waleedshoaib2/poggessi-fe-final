@@ -2,10 +2,10 @@
 
 import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import LoginLayout from '../(root)/login-layout'
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token') || ''
@@ -127,5 +127,13 @@ export default function ResetPasswordPage() {
         )}
       </Box>
     </LoginLayout>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }
