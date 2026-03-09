@@ -8,7 +8,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
-    const result = await requestPasswordReset(String(email), request.nextUrl.origin)
+    const resetBaseUrl = process.env.FRONTEND_BASE_URL || request.nextUrl.origin
+    const result = await requestPasswordReset(String(email), resetBaseUrl)
     return NextResponse.json(result)
   } catch (error) {
     return NextResponse.json(

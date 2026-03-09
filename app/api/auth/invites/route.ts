@@ -26,9 +26,9 @@ export async function POST(request: NextRequest) {
     const inviteRole: UserRole = 'member'
 
     const sessionToken = request.cookies.get(SESSION_COOKIE)?.value || ''
-    const inviteBaseUrl = request.nextUrl.origin
+    const inviteBaseUrl = process.env.FRONTEND_BASE_URL || request.nextUrl.origin
     const result = await createInvite(sessionToken, email, inviteRole, inviteBaseUrl)
-    const origin = request.nextUrl.origin
+    const origin = process.env.FRONTEND_BASE_URL || request.nextUrl.origin
     return NextResponse.json({
       inviteUrl: result.inviteUrl || `${origin}/invite?token=${result.inviteToken}`,
       email: result.email || email,

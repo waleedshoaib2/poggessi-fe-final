@@ -25,6 +25,7 @@ export default function TeamPage() {
   const [inviteStatus, setInviteStatus] = useState<string>('')
   const [passwordResetStatus, setPasswordResetStatus] = useState<string>('')
   const [deleteStatus, setDeleteStatus] = useState<string>('')
+  const [inviteDeleteStatus, setInviteDeleteStatus] = useState<string>('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -66,6 +67,7 @@ export default function TeamPage() {
     setInviteStatus('')
     setPasswordResetStatus('')
     setDeleteStatus('')
+    setInviteDeleteStatus('')
     try {
       const resp = await fetch('/api/auth/invites', {
         method: 'POST',
@@ -94,6 +96,7 @@ export default function TeamPage() {
     setError(null)
     setPasswordResetStatus('')
     setDeleteStatus('')
+    setInviteDeleteStatus('')
     const password = window.prompt(`Enter a new password for ${userEmail}`)
     if (!password) return
 
@@ -118,6 +121,7 @@ export default function TeamPage() {
     setError(null)
     setPasswordResetStatus('')
     setDeleteStatus('')
+    setInviteDeleteStatus('')
     const confirmed = window.confirm(`Delete ${userEmail}? This removes their access immediately.`)
     if (!confirmed) return
 
@@ -134,6 +138,30 @@ export default function TeamPage() {
       await load()
     } catch {
       setError('Unable to delete user')
+    }
+  }
+
+  const removeInvite = async (inviteId: string, inviteEmail: string) => {
+    setError(null)
+    setPasswordResetStatus('')
+    setDeleteStatus('')
+    setInviteDeleteStatus('')
+    const confirmed = window.confirm(`Delete pending invite for ${inviteEmail}?`)
+    if (!confirmed) return
+
+    try {
+      const resp = await fetch(`/api/auth/invites/${inviteId}`, {
+        method: 'DELETE'
+      })
+      const data = await resp.json()
+      if (!resp.ok) {
+        setError(data.error || 'Unable to delete invite')
+        return
+      }
+      setInviteDeleteStatus(`Deleted invite for ${inviteEmail}`)
+      await load()
+    } catch {
+      setError('Unable to delete invite')
     }
   }
 
@@ -231,6 +259,7 @@ export default function TeamPage() {
         {inviteUrl && !inviteStatus.startsWith('Invite email sent') ? <Alert severity="info" sx={{ mb: 2 }}>Manual Invite Link: {inviteUrl}</Alert> : null}
         {passwordResetStatus ? <Alert severity="success" sx={{ mb: 2 }}>{passwordResetStatus}</Alert> : null}
         {deleteStatus ? <Alert severity="success" sx={{ mb: 2 }}>{deleteStatus}</Alert> : null}
+        {inviteDeleteStatus ? <Alert severity="success" sx={{ mb: 2 }}>{inviteDeleteStatus}</Alert> : null}
 
         <Stack direction={{ xs: 'column', xl: 'row' }} spacing={2.5} alignItems="stretch">
           <Paper
@@ -453,17 +482,34 @@ export default function TeamPage() {
                           Awaiting activation
                         </Typography>
                       </Box>
-                      <Chip
-                        label={invite.role}
-                        sx={{
-                          alignSelf: { xs: 'flex-start', md: 'center' },
-                          borderRadius: '999px',
-                          backgroundColor: alpha('#5D6679', 0.12),
-                          color: 'grey.700',
-                          fontWeight: 700,
-                          textTransform: 'lowercase'
-                        }}
-                      />
+                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'stretch', md: 'center' }}>
+                        <Chip
+                          label={invite.role}
+                          sx={{
+                            alignSelf: { xs: 'flex-start', md: 'center' },
+                            borderRadius: '999px',
+                            backgroundColor: alpha('#5D6679', 0.12),
+                            color: 'grey.700',
+                            fontWeight: 700,
+                            textTransform: 'lowercase'
+                          }}
+                        />
+                        <Button
+                          size="small"
+                          color="error"
+                          variant="outlined"
+                          startIcon={<DeleteOutlineRoundedIcon />}
+                          onClick={() => removeInvite(invite.id, invite.email)}
+                          sx={{
+                            borderRadius: '14px',
+                            px: 1.75,
+                            py: 0.9,
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </Stack>
                     </Stack>
                   </Paper>
                 ))}

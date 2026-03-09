@@ -158,6 +158,21 @@ export async function deleteUser(sessionToken: string, userId: string) {
   return requireData(data, 'Unable to delete user')
 }
 
+export async function deleteInvite(sessionToken: string, inviteId: string) {
+  const { response, data } = await backendFetch(`/api/auth/invites/${inviteId}`, {
+    method: 'DELETE',
+    headers: {
+      'x-session-token': sessionToken
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error(getErrorMessage(data, 'Unable to delete invite'))
+  }
+
+  return requireData(data, 'Unable to delete invite')
+}
+
 export async function requestPasswordReset(email: string, resetBaseUrl: string) {
   const { response, data } = await backendFetch('/api/auth/password-reset/request', {
     method: 'POST',
