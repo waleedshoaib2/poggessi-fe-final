@@ -15,6 +15,18 @@ export const SESSION_COOKIE = 'auth_session'
 
 type SessionUser = { id: string; email: string; role: UserRole }
 
+function getErrorMessage(data: Record<string, unknown> | null, fallback: string) {
+  const error = data?.error
+  return typeof error === 'string' && error ? error : fallback
+}
+
+function requireData(data: Record<string, unknown> | null, fallback: string) {
+  if (!data) {
+    throw new Error(fallback)
+  }
+  return data
+}
+
 async function backendFetch(path: string, options: RequestInit = {}) {
   const url = new URL(path, backendBaseUrl)
   const response = await fetch(url, {
@@ -41,7 +53,8 @@ export async function login(email: string, password: string) {
   })
 
   if (!response.ok) return null
-  return { token: data.token as string, user: data.user as SessionUser }
+  const payload = requireData(data, 'Login failed')
+  return { token: payload.token as string, user: payload.user as SessionUser }
 }
 
 export async function logout(token: string) {
@@ -58,7 +71,8 @@ export async function getSessionUser(token: string | undefined) {
     headers: { 'x-session-token': token }
   })
   if (!response.ok) return null
-  return data.user as SessionUser
+  const payload = requireData(data, 'Unauthorized')
+  return payload.user as SessionUser
 }
 
 export async function getSessionUserFromRequest(request: NextRequest) {
@@ -76,9 +90,9 @@ export async function createInvite(sessionToken: string, email: string, role: Us
     body: JSON.stringify({ email, role, invite_base_url: inviteBaseUrl })
   })
   if (!response.ok) {
-    throw new Error(data?.error || 'Unable to create invite')
+    throw new Error(getErrorMessage(data, 'Unable to create invite'))
   }
-  return data as CreateInviteResult
+  return requireData(data, 'Unable to create invite') as CreateInviteResult
 }
 
 export async function listUsersAndInvites(sessionToken: string) {
@@ -86,9 +100,9 @@ export async function listUsersAndInvites(sessionToken: string) {
     headers: { 'x-session-token': sessionToken }
   })
   if (!response.ok) {
-    throw new Error(data?.error || 'Unable to load users and invites')
+    throw new Error(getErrorMessage(data, 'Unable to load users and invites'))
   }
-  return data as {
+  return requireData(data, 'Unable to load users and invites') as {
     users: Array<{ id: string; email: string; role: UserRole; created_at?: string; createdAt?: string }>
     pendingInvites: Array<{ id: string; email: string; role: UserRole; created_at?: string; createdAt?: string; expires_at?: string; expiresAt?: string }>
   }
@@ -102,12 +116,13 @@ export async function acceptInvite(token: string, password: string) {
   })
 
   if (!response.ok) {
-    throw new Error(data?.error || 'Unable to accept invite')
+    throw new Error(getErrorMessage(data, 'Unable to accept invite'))
   }
 
+  const payload = requireData(data, 'Unable to accept invite')
   return {
-    token: data.token as string,
-    user: data.user as SessionUser
+    token: payload.token as string,
+    user: payload.user as SessionUser
   }
 }
 
@@ -122,10 +137,10 @@ export async function resetUserPassword(sessionToken: string, userId: string, pa
   })
 
   if (!response.ok) {
-    throw new Error(data?.error || 'Unable to reset password')
+    throw new Error(getErrorMessage(data, 'Unable to reset password'))
   }
 
-  return data
+  return requireData(data, 'Unable to reset password')
 }
 
 export async function deleteUser(sessionToken: string, userId: string) {
@@ -137,10 +152,10 @@ export async function deleteUser(sessionToken: string, userId: string) {
   })
 
   if (!response.ok) {
-    throw new Error(data?.error || 'Unable to delete user')
+    throw new Error(getErrorMessage(data, 'Unable to delete user'))
   }
 
-  return data
+  return requireData(data, 'Unable to delete user')
 }
 
 export async function requestPasswordReset(email: string, resetBaseUrl: string) {
@@ -151,10 +166,10 @@ export async function requestPasswordReset(email: string, resetBaseUrl: string) 
   })
 
   if (!response.ok) {
-    throw new Error(data?.error || 'Unable to request password reset')
+    throw new Error(getErrorMessage(data, 'Unable to request password reset'))
   }
 
-  return data
+  return requireData(data, 'Unable to request password reset')
 }
 
 export async function confirmPasswordReset(token: string, password: string) {
@@ -165,8 +180,8 @@ export async function confirmPasswordReset(token: string, password: string) {
   })
 
   if (!response.ok) {
-    throw new Error(data?.error || 'Unable to reset password')
+    throw new Error(getErrorMessage(data, 'Unable to reset password'))
   }
 
-  return data
+  return requireData(data, 'Unable to reset password')
 }
