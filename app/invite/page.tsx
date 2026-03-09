@@ -2,10 +2,10 @@
 
 import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import LoginLayout from '../(root)/login-layout'
 
-export default function InvitePage() {
+function InviteContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [password, setPassword] = useState('')
@@ -82,5 +82,13 @@ export default function InvitePage() {
         </Button>
       </Box>
     </LoginLayout>
+  )
+}
+
+export default function InvitePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <InviteContent />
+    </Suspense>
   )
 }
