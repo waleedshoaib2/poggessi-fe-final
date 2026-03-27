@@ -203,7 +203,7 @@ const renderSearchResults = (
                     {`Item No: ${result.metadata.item_num}`}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" align="center">
-                    {`Price: ${
+                    {`Cost: ${
                       result.metadata?.exw_quotes_per_pc
                         ? roundToInteger(result.metadata.exw_quotes_per_pc) + '$'
                         : 'N/A'

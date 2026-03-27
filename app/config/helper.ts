@@ -7,7 +7,7 @@ import { ProductMetadata, ProductResult } from './type'
  */
 const mapMetadataToRow = (item: ProductResult, metadata: ProductMetadata) => ({
     Item_No: metadata.item_num ?? '',
-    Price: metadata.exw_quotes_per_pc ? roundToInteger(metadata.exw_quotes_per_pc) + '$' : 'N/A',
+    Cost: metadata.exw_quotes_per_pc ? roundToInteger(metadata.exw_quotes_per_pc) + '$' : 'N/A',
     Specifications: metadata.specs ?? '',
     Dimensions: metadata.dims ?? '',
     'Request Date': item.metadata.request_date ?? '',

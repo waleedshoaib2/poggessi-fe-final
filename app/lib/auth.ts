@@ -122,7 +122,16 @@ export async function logout(token: string) {
 
 export async function getSessionUser(token: string | undefined) {
   if (!token) return null
-  return verifySessionToken(token)
+  const localUser = verifySessionToken(token)
+  if (localUser) return localUser
+
+  const { response, data } = await backendFetch('/api/auth/me', {
+    method: 'GET',
+    headers: { 'x-session-token': token }
+  })
+  if (!response.ok) return null
+  const payload = requireData(data, 'Unauthorized')
+  return payload.user as SessionUser
 }
 
 export async function getSessionUserFromRequest(request: NextRequest) {
