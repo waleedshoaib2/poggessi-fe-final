@@ -134,6 +134,7 @@ const SearchContent: React.FC = () => {
   const [chats, setChats] = useState<ConversationChat[]>([])
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
   const [isChatsLoading, setIsChatsLoading] = useState(false)
+  const [hasLoadedChats, setHasLoadedChats] = useState(false)
   const [isTurnsLoading, setIsTurnsLoading] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isAuthChecking, setIsAuthChecking] = useState(true)
@@ -407,6 +408,7 @@ const SearchContent: React.FC = () => {
       setChats([])
     } finally {
       setIsChatsLoading(false)
+      setHasLoadedChats(true)
     }
   }
 
@@ -481,10 +483,10 @@ const SearchContent: React.FC = () => {
         }
         const data = await response.json()
         setUserRole(data?.user?.role === 'admin' ? 'admin' : 'member')
-        await fetchChats()
+        setIsAuthChecking(false)
+        void fetchChats()
       } catch {
         router.replace('/login')
-      } finally {
         setIsAuthChecking(false)
       }
     }
@@ -507,10 +509,22 @@ const SearchContent: React.FC = () => {
   }
 
   const renderConversationItems = (onSelect?: () => void) => {
-    if (isChatsLoading) {
+    if (isChatsLoading || !hasLoadedChats) {
       return (
-        <Box sx={{ py: 2, display: 'flex', justifyContent: 'center' }}>
-          <CircularProgress size={24} />
+        <Box
+          sx={{
+            minHeight: '45vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1.5
+          }}
+        >
+          <CircularProgress size={28} sx={{ color: 'rgba(255,255,255,0.95)' }} />
+          <Typography variant="body2" sx={{ color: 'rgba(236,244,255,0.9)' }}>
+            Loading conversations...
+          </Typography>
         </Box>
       )
     }
