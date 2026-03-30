@@ -2,7 +2,7 @@
 
 import { Paper, Box, Typography, Slider, Stack, FormControl, Select, InputLabel, MenuItem } from '@mui/material'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export type NumResults = number | 'all'
 
@@ -21,7 +21,13 @@ const Configuration = ({ numResults, setNumResults, confidence, setConfidence }:
   const searchParams = useSearchParams()
 
   // Internal state for the source dropdown
-  const [localSource, setLocalSource] = useState(searchParams.get('source') || '')
+  const sourceParam = searchParams.get('source') || ''
+  const [localSource, setLocalSource] = useState(sourceParam)
+
+  // Keep dropdown in sync with URL changes (e.g. when clicking a previous chat)
+  useEffect(() => {
+    setLocalSource(sourceParam)
+  }, [sourceParam])
   const sliderNumResults = numResults === 'all' ? 10 : numResults
 
   const handleSourceChange = (newSource: string) => {

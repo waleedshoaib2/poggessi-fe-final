@@ -22,7 +22,7 @@ import ProductDetailsDialog from '../(root)/components/ProductDetailsDialog'
 import renderSearchResults from '../(root)/components/results'
 import RefinementQuestions from '../(root)/components/RefinementQuestions'
 import Turn from '../(root)/components/turn'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ROUTES } from '../config/api'
 import {
   ProductResult,
@@ -145,6 +145,7 @@ const SearchContent: React.FC = () => {
   const skipNextAutoScrollRef = useRef(false)
   const searchParams = useSearchParams()
   const router = useRouter()
+  const pathname = usePathname()
 
   const topK = searchParams.get('top_k')
   const confT = searchParams.get('conf_t')
@@ -543,6 +544,15 @@ const SearchContent: React.FC = () => {
             key={`${chat.chat_id}-${chat.turn_index}`}
             onClick={() => {
               void loadConversation(chat.chat_id)
+              // When switching between saved chats, preserve their saved `source_filter` in the URL.
+              // This drives the `source` query param and the backend RAG `source_filter`.
+              const params = new URLSearchParams(searchParams.toString())
+              if (chat.source_filter && chat.source_filter !== '') {
+                params.set('source', chat.source_filter)
+              } else {
+                params.delete('source')
+              }
+              router.push(`${pathname}?${params.toString()}`, { scroll: false })
               onSelect?.()
             }}
             sx={{
