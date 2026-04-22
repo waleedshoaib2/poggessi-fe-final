@@ -9,6 +9,15 @@ export interface ProductMetadata {
     modality: 'text' | 'image'
     moq_loading_qty: number
     program_name: string
+    /**
+     * Optional: only present for some sources.
+     * Used as a fallback when `program_name` is missing.
+     */
+    project_name_collection_name?: string
+    /**
+     * Optional: HTS/HS code if provided by source.
+     */
+    hts_code?: string
     quote_date: string // ISO date string
     request_date: string // ISO date string
     sample_status: string
