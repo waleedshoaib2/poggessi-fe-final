@@ -20,10 +20,12 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@next/swc-darwin-arm64": "^16.2.4",
     "@types/file-saver": "^2.0.7",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "baseline-browser-mapping": "^2.10.23",
     "eslint": "^9",
     "eslint-config-next": "16.0.6",
     "typescript": "^5"

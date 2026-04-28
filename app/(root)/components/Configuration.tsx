@@ -1,8 +1,19 @@
 'use client'
 
-import { Paper, Box, Typography, Slider, Stack, FormControl, Select, InputLabel, MenuItem } from '@mui/material'
+import {
+  Paper,
+  Box,
+  Typography,
+  Slider,
+  Stack,
+  FormControl,
+  Select,
+  InputLabel,
+  MenuItem
+} from '@mui/material'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { CATALOG_FACTORY_NAMES, CATALOG_PROGRAM_NAMES } from '../../config/catalogFacets'
 
 export type NumResults = number | 'all'
 
@@ -15,34 +26,65 @@ interface ConfigurationProps {
 }
 
 const Configuration = ({ numResults, setNumResults, confidence, setConfidence }: ConfigurationProps) => {
-  // Convert "all" → 10 for slider
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
-  // Internal state for the source dropdown
   const sourceParam = searchParams.get('source') || ''
   const [localSource, setLocalSource] = useState(sourceParam)
 
-  // Keep dropdown in sync with URL changes (e.g. when clicking a previous chat)
+  const programParam = searchParams.get('program_name') ?? ''
+  const factoryParam = searchParams.get('factory_name') ?? ''
+  const [localProgram, setLocalProgram] = useState(programParam)
+  const [localFactory, setLocalFactory] = useState(factoryParam)
+
   useEffect(() => {
     setLocalSource(sourceParam)
   }, [sourceParam])
+
+  useEffect(() => {
+    setLocalProgram(programParam)
+  }, [programParam])
+
+  useEffect(() => {
+    setLocalFactory(factoryParam)
+  }, [factoryParam])
+
   const sliderNumResults = numResults === 'all' ? 10 : numResults
+
+  const pushParams = (mutate: (p: URLSearchParams) => void) => {
+    const params = new URLSearchParams(searchParams.toString())
+    mutate(params)
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
 
   const handleSourceChange = (newSource: string) => {
     setLocalSource(newSource)
-
-    const params = new URLSearchParams(searchParams.toString())
-
-    if (newSource === 'All Sources' || newSource === '') {
-      params.delete('source') // Remove param if "All Sources" is selected
-    } else {
-      params.set('source', newSource) // Set param for specific source
-    }
-
-    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+    pushParams((params) => {
+      if (newSource === 'All Sources' || newSource === '') {
+        params.delete('source')
+      } else {
+        params.set('source', newSource)
+      }
+    })
   }
+
+  const handleProgramChange = (value: string) => {
+    setLocalProgram(value)
+    pushParams((params) => {
+      if (!value) params.delete('program_name')
+      else params.set('program_name', value)
+    })
+  }
+
+  const handleFactoryChange = (value: string) => {
+    setLocalFactory(value)
+    pushParams((params) => {
+      if (!value) params.delete('factory_name')
+      else params.set('factory_name', value)
+    })
+  }
+
   const handleNumResultsChange = (_: Event, newValue: number | number[]) => {
     const value = newValue as number
     setNumResults(value === 10 ? 'all' : value)
@@ -51,14 +93,35 @@ const Configuration = ({ numResults, setNumResults, confidence, setConfidence }:
   const handleConfidenceChange = (_: Event, newValue: number | number[]) => {
     setConfidence(newValue as number)
   }
+
+  const selectSx = {
+    color: 'white',
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
+    '& .MuiSvgIcon-root': { color: 'white' }
+  }
+
+  const labelSx = {
+    color: 'white',
+    '&.Mui-focused': { color: 'white' }
+  }
+
+  const menuProps = {
+    PaperProps: {
+      style: { maxHeight: 280 }
+    }
+  }
+
   return (
     <Paper
       elevation={3}
       sx={{
         minHeight: '0vh',
-        maxHeight: '65vh',
+        maxHeight: '75vh',
+        overflowY: 'auto',
         display: 'flex',
-        minWidth: '18vw',
+        minWidth: 'min(92vw, 380px)',
         flexDirection: 'column',
         p: 3,
         borderRadius: 4,
@@ -68,14 +131,12 @@ const Configuration = ({ numResults, setNumResults, confidence, setConfidence }:
         color: 'white'
       }}
     >
-      {/* Header */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
         <Typography variant="h6" fontWeight="light">
           Configuration
         </Typography>
       </Stack>
 
-      {/* No. of Results */}
       <Box>
         <Typography variant="body2" gutterBottom sx={{ opacity: 0.9 }}>
           No. of Results
@@ -101,7 +162,6 @@ const Configuration = ({ numResults, setNumResults, confidence, setConfidence }:
             height: 8,
             '& .MuiSlider-track': {
               border: 'none'
-              // backgroundColor: 'primary.main'
             },
             '& .MuiSlider-rail': {
               backgroundColor: 'white',
@@ -142,7 +202,6 @@ const Configuration = ({ numResults, setNumResults, confidence, setConfidence }:
         />
       </Box>
 
-      {/* Confidence Threshold */}
       <Box mb={2}>
         <Typography variant="body2" gutterBottom sx={{ opacity: 0.9 }}>
           Confidence Threshold
@@ -163,7 +222,6 @@ const Configuration = ({ numResults, setNumResults, confidence, setConfidence }:
             height: 8,
             '& .MuiSlider-track': {
               border: 'none'
-              // backgroundColor: 'primary.main'
             },
             '& .MuiSlider-rail': {
               backgroundColor: 'white',
@@ -203,17 +261,10 @@ const Configuration = ({ numResults, setNumResults, confidence, setConfidence }:
           }}
         />
       </Box>
-      <Box mt={1}>
+
+      <Box mt={1} mb={1}>
         <FormControl fullWidth size="small">
-          <InputLabel
-            id="source-filter-label-config"
-            sx={{
-              color: 'white',
-              '&.Mui-focused': {
-                color: 'white'
-              }
-            }}
-          >
+          <InputLabel id="source-filter-label-config" sx={labelSx}>
             Source
           </InputLabel>
           <Select
@@ -221,18 +272,73 @@ const Configuration = ({ numResults, setNumResults, confidence, setConfidence }:
             value={localSource}
             label="Source"
             onChange={(e) => handleSourceChange(e.target.value)}
-            sx={{
-              color: 'white',
-              '& .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
-              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
-              '& .MuiSvgIcon-root': { color: 'white' }
-            }}
+            sx={selectSx}
+            MenuProps={menuProps}
           >
             <MenuItem value="All Sources">All Sources</MenuItem>
             <MenuItem value="Catalog Items">Catalog Items</MenuItem>
             <MenuItem value="Customized Quoted">Customized Quoted</MenuItem>
             <MenuItem value="Custom Built">Custom Built</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      <Box mb={1}>
+        <FormControl fullWidth size="small" variant="outlined">
+          <InputLabel id="program-name-label" shrink sx={labelSx}>
+            Program
+          </InputLabel>
+          <Select
+            labelId="program-name-label"
+            value={localProgram}
+            label="Program"
+            displayEmpty
+            onChange={(e) => handleProgramChange(e.target.value as string)}
+            sx={selectSx}
+            MenuProps={menuProps}
+            renderValue={(selected) => {
+              if (!selected) return <span style={{ opacity: 0.75 }}>Any program</span>
+              return selected
+            }}
+          >
+            <MenuItem value="">
+              <em>Any program</em>
+            </MenuItem>
+            {CATALOG_PROGRAM_NAMES.map((name) => (
+              <MenuItem key={name} value={name}>
+                {name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
+      <Box>
+        <FormControl fullWidth size="small" variant="outlined">
+          <InputLabel id="factory-name-label" shrink sx={labelSx}>
+            Factory
+          </InputLabel>
+          <Select
+            labelId="factory-name-label"
+            value={localFactory}
+            label="Factory"
+            displayEmpty
+            onChange={(e) => handleFactoryChange(e.target.value as string)}
+            sx={selectSx}
+            MenuProps={menuProps}
+            renderValue={(selected) => {
+              if (!selected) return <span style={{ opacity: 0.75 }}>Any factory</span>
+              return selected
+            }}
+          >
+            <MenuItem value="">
+              <em>Any factory</em>
+            </MenuItem>
+            {CATALOG_FACTORY_NAMES.map((name) => (
+              <MenuItem key={name} value={name}>
+                {name}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
       </Box>

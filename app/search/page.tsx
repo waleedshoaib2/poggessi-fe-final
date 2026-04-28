@@ -87,6 +87,8 @@ interface Message {
     text: string
     image?: string
     source?: string
+    program_name?: string
+    factory_name?: string
   }
   selectedFilters?: Record<string, string>
   turn_history?: TurnHistoryItem[]
@@ -150,6 +152,8 @@ const SearchContent: React.FC = () => {
   const topK = searchParams.get('top_k')
   const confT = searchParams.get('conf_t')
   const source = searchParams.get('source') || undefined
+  const programName = searchParams.get('program_name') || undefined
+  const factoryName = searchParams.get('factory_name') || undefined
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -671,7 +675,9 @@ const SearchContent: React.FC = () => {
     text: string,
     chatId: string,
     image?: string | null,
-    source?: string
+    source?: string,
+    programNameParam?: string,
+    factoryNameParam?: string
   ): Promise<SearchResponse> => {
     try {
       const formData = new FormData()
@@ -691,6 +697,8 @@ const SearchContent: React.FC = () => {
       params.set('conf_t', (confT || 0.3).toString())
       params.set('chat_id', chatId)
       if (source) params.set('source', source)
+      if (programNameParam) params.set('program_name', programNameParam)
+      if (factoryNameParam) params.set('factory_name', factoryNameParam)
 
       const response = await fetch(`${ROUTES.SEARCH}?${params.toString()}`, {
         method: 'POST',
@@ -803,7 +811,9 @@ const SearchContent: React.FC = () => {
         message.originalQuery.text,
         nextChatId,
         message.originalQuery.image,
-        message.originalQuery.source
+        message.originalQuery.source,
+        message.originalQuery.program_name,
+        message.originalQuery.factory_name
       )
       const nextTurnHistory = data.turn_history ?? []
       const nextTurnIndex = data.current_turn ?? 0
@@ -865,7 +875,14 @@ const SearchContent: React.FC = () => {
       const chatId = createChatId()
       setStoredChatId(chatId)
 
-      const data = await searchHybrid(newUserMessage.content, chatId, newUserMessage.image, source)
+      const data = await searchHybrid(
+        newUserMessage.content,
+        chatId,
+        newUserMessage.image,
+        source,
+        programName,
+        factoryName
+      )
       const results = data.matches || []
       const nextChatId = data.chat_id ?? chatId
       setStoredChatId(nextChatId)
@@ -896,7 +913,9 @@ const SearchContent: React.FC = () => {
         originalQuery: {
           text: newUserMessage.content,
           image: newUserMessage.image,
-          source: source
+          source: source,
+          program_name: programName,
+          factory_name: factoryName
         },
         selectedFilters: nextSelectedFilters,
         turn_history: data.turn_history
