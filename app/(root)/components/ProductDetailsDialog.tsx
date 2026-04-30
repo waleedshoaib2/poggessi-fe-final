@@ -15,7 +15,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import { ProductResult } from '@/app/config/type'
 import Variants from './variants'
 import { ArrowBack } from '@mui/icons-material'
-import { roundToInteger } from '@/app/config/helper'
+import { roundToInteger, toNonEmptyString } from '@/app/config/helper'
 
 interface ProductDetailsDialogProps {
   open: boolean
@@ -202,7 +202,7 @@ const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                   Factory Name:
                 </Typography>
                 <Typography variant="body1" fontWeight="medium">
-                  {metadata.factory_name || 'MX'}
+                  {toNonEmptyString(metadata.factory_name) || 'N/A'}
                 </Typography>
               </Grid>
 
@@ -220,7 +220,7 @@ const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                   MOQ Loading Qty:
                 </Typography>
                 <Typography variant="body1" fontWeight="medium">
-                  {metadata.moq_loading_qty || '65'}
+                  {toNonEmptyString(metadata.moq_loading_qty) || 'N/A'}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>

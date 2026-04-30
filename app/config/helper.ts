@@ -2,7 +2,8 @@ import * as XLSX from 'xlsx'
 import { saveAs } from 'file-saver'
 import { ProductMetadata, ProductResult } from './type'
 
-const toNonEmptyString = (value: unknown): string => {
+/** Normalise metadata fields for display and CSV export (handles strings, numbers, null). */
+export const toNonEmptyString = (value: unknown): string => {
     if (value == null) return ''
     if (typeof value === 'string') return value.trim()
     if (typeof value === 'number') return Number.isFinite(value) ? String(value) : ''
@@ -59,10 +60,21 @@ export const exportSelectedToExcel = (data: ProductResult[]) => {
 
     const dataRows = exportItems.map((item) => {
         const md = item.metadata
+        const meta = md as unknown as Record<string, unknown>
+        const moq =
+            meta.moq_loading_qty ??
+            meta.MOQ_Loading_Qty ??
+            meta.moq ??
+            meta.MOQ
+        const factory =
+            meta.factory_name ??
+            meta.Factory_Name ??
+            meta.factory ??
+            meta.Factory
         return [
             toNonEmptyString(md?.signed_urls?.[0] ?? ''),
-            toNonEmptyString((md as unknown as Record<string, unknown>).moq_loading_qty),
-            toNonEmptyString(md.factory_name),
+            toNonEmptyString(moq),
+            toNonEmptyString(factory),
             toNonEmptyString(md.description) || toNonEmptyString(md.specs),
             toNonEmptyString(md.dims),
             getProgramOrProject(md),
